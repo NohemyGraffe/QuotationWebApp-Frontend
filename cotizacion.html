@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Cotización</title>
+    <style>
+        body
+        {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+        h2, h3 {
+            color: #0056b3;
+            text-align: center;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        input[type="number"], input[type="text"], input[type="date"], input[type="time"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .row div {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .row div:last-child {
+            margin-right: 0;
+        }
+        .row input[type="date"], .row input[type="time"], .row input[type="text"] {
+            width: calc(100% - 10px);
+        }
+        .row button {
+            background-color: #ff4d4d;
+            color: white;
+            padding: 4px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 60px;
+        }
+        .row button:hover {
+            background-color: #cc0000;
+        }
+        button {
+            background-color: #0056b3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #004494;
+        }
+        .result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            margin-top: 10px;
+        }
+        .checkbox-group label {
+            font-weight: normal;
+        }
+        .results {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .results p {
+            margin: 5px 0;
+        }
+        .tour-section {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .hotel-row {
+            margin-bottom: 20px;
+        }
+        .hotel-row.new-hotel {
+            border-top: 5px solid #0056b3;
+            padding-top: 20px;
+        }
+        .hotel-row button {
+            background-color: #ff4d4d;
+            color: white;
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: auto;
+            margin-top: 10px;
+        }
+        .hotel-row button:hover {
+            background-color: #cc0000;
+        }
+        .short-button {
+            padding: 5px 10px;
+            font-size: 0.9em;
+            width: auto;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head>
+<body>
+    <div class="container">
+     
+        <h2>Formulario de Cotización de MultyViajes</h2>
+
+
+        <label>Número de Personas:</label>
+        <input type="number" id="numPersonas" value="1" min="1" onchange="calcularCotizacion(); actualizarResumenPasajeros(); actualizarResumenTotalPasajeros(); actualizarResumenTotal();">
+
+        <label>Tasa de Cambio a USD:</label>
+        <input type="number" id="exchangeRate" value="3900" min="1" step="0.01" onchange="calcularCotizacion();">
+        
+
+        <h3>Itinerario del Paquete</h3>
+        <div id="itinerarioContainer">
+            <div class="row">
+                <div>
+                    <label>Fecha:</label>
+                    <input type="date" class="date-picker" onchange="actualizarResumenItinerario()">
+                </div>
+                <div>
+                    <label>Actividad:</label>
+                    <input type="text" class="actividadItinerario" onchange="actualizarResumenItinerario()">
+                </div>
+                <button type="button" onclick="removerActividad(this)">Remover</button>
+            </div>
+        </div>
+        <button type="button" onclick="agregarActividad()">Agregar Actividad</button>
+        
+        <h3>Traslado de llegada</h3>
+        <label for="pax">Número de Personas:</label>
+        <input type="number" id="pax" min="1" value="1" onchange="calcularPrecios()">
+
+        <p><strong>Precio Neto (Costo del carro):</strong> <span id="neto">0</span> COP</p>
+        <p><strong>Precio con Utilidad (Precio por persona x pax):</strong> <span id="venta">0</span> COP</p>
+        
+        <input type="hidden" id="precioTransporteNeto" value="0">
+        <input type="hidden" id="precioTransporteVenta" value="0">
+
+        <h3>Traslado de Regreso</h3>
+        <label for="paxRegreso">Número de Personas:</label>
+        <input type="number" id="paxRegreso" min="1" value="1" onchange="calcularPreciosRegreso()">
+
+        <p><strong>Precio Neto (Costo del carro):</strong> <span id="netoRegreso">0</span> COP</p>
+        <p><strong>Precio con Utilidad (Precio por persona x pax):</strong> <span id="ventaRegreso">0</span> COP</p>
+
+        <input type="hidden" id="precioTransporteNetoRegreso" value="0">
+        <input type="hidden" id="precioTransporteVentaRegreso" value="0">
+   
+
+        <div class="checkbox-group" id="tourCheckboxes">
+            <h3>Tours Incluidos en la Cotización</h3>
+            <!-- Tour checkboxes will be populated here dynamically -->
+          </div>
+          
+        
+        <h3>Costos Adicionales</h3>
+
+        <label>Descripción:</label>
+        <input type="text" id="descripcionCostosAdicionales">
+        
+        <label>Costos en Neto (COP):</label>
+        <input type="number" id="costosAdicionalesNeto" value="0" onchange="calcularCotizacion()">
+        
+        <label>Utilidad de los costos (COP):</label>
+        <input type="number" id="costosAdicionalesUtilidad" value="0" onchange="calcularCotizacion()">
+
+        <h3>Información del Hotel</h3>
+
+        <div id="hotelContainer">
+            <div class="hotel-row">
+                <label>Nombre:</label>
+                <input type="text" class="nombreHotel">
+                
+                <label>Acomodación:</label>
+                <input type="text" class="tipoAcomodacion">
+                
+                <label>Precio Neto de la Estadía en COP:</label>
+                <input type="number" class="precioHotelNeto" value="0" onchange="calcularCotizacion()">
+                
+                <label>Utilidad de la Estadía en USD:</label>
+                <input type="number" class="utilidadHotel" value="0" onchange="calcularCotizacion()"> 
+                
+                <button type="button" onclick="removerHotel(this)">Remover</button>
+            </div>
+        </div>
+        
+        <button type="button" onclick="agregarHotel()">Agregar Hotel</button>
+  
+        <div class="results">
+
+            <h3>Total en Servicios por Persona</h3>
+
+            <p><strong>Total Neto (COP):</strong> <span id="totalPpNetoCop">0</span> COP</p>
+            <p><strong>Total con Utilidad (COP):</strong> <span id="totalPpVentaCop">0</span> COP</p>
+            <p><strong>Total con Utilidad en USD:</strong> <span id="totalPpVentaUsd">0</span> USD</p>
+
+            <h3>Total de la Cotización</h3>
+
+            <p><strong>Total Neto (COP):</strong> <span id="totalNetoCop">0</span> COP</p>
+            <p><strong>Total con Utilidad (COP):</strong> <span id="totalVentaCop">0</span> COP</p>
+            <p><strong>Total con Utilidad en USD:</strong> <span id="totalVentaUsd">0</span> USD</p>
+
+            <h3>Ganancias de la Empresa</h3>
+
+            <p><strong>Total Utilidad (COP):</strong> <span id="totalUtilidad">0</span> COP</p>
+            <p><strong>Utilidad por Persona (COP):</strong> <span id="utilidadPp">0</span> COP</p>
+
+        </div>
+
+        <div class="summary">
+            <h3>Resumen de la Cotización</h3>
+            <div id="resumenHoteles">
+                <p><strong>Hotel:</strong> <span>N/A</span></p>
+
+                <p><strong>Acomodación:</strong> <span>N/A</span></p>
+            </div>
+            <div id="resumenItinerario">
+                <p><strong>Itinerario:</strong></p>
+            </div>
+            <div id="resumenPasajeros">
+                <p><strong>Pasajeros:</strong> <span id="numPasajeros">1</span></p>
+            </div>
+            <div id="resumenTotalPasajeros">
+                <p><strong>Total por Pasajero:</strong> <span id="totalPorPasajero">1 X 0 USD</span></p>
+            </div>
+            <div id="resumenTotal">
+                <p><strong>Total =</strong> <span id="totalCotizacionUsd">0 USD</span></p>
+            </div>
+            <button id="copiarResumenBtn" onclick="copiarResumen()">Copiar Resumen</button>
+            <button onclick="saveAndRedirect()">Ver Resumen Interno de la Cotización</button>
+            <button onclick="resetForm()">Nueva Cotización</button>
+
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+    <script>
+        flatpickr(".date-picker", {
+            locale: "es",
+            dateFormat: "Y-m-d",
+            disableMobile: true // Forces Flatpickr on mobile instead of native date picker
+        });
+
+        function agregarActividad() {
+            const itinerarioContainer = document.getElementById('itinerarioContainer');
+            const newRow = document.createElement('div');
+            newRow.className = 'row';
+            newRow.innerHTML = `
+                <div>
+                    <label>Fecha:</label>
+                    <input type="date" class="date-picker" onchange="actualizarResumenItinerario()">
+                </div>
+                <div>
+                    <label>Actividad:</label>
+                    <input type="text" class="actividadItinerario" onchange="actualizarResumenItinerario()">
+                </div>
+                <button type="button" onclick="removerActividad(this)">Remover</button>
+            `;
+            itinerarioContainer.appendChild(newRow);
+
+           // Apply Flatpickr only to the new date input
+           const newDatePicker = newRow.querySelector('.date-picker');
+           flatpickr(newDatePicker, {
+               locale: "es",
+               dateFormat: "Y-m-d",
+               disableMobile: true, // Forces Flatpickr on mobile instead of native date picker
+               onChange: function() {
+                   actualizarResumenItinerario();
+    }
+});
+            // Attach event listeners to update the summary
+            newRow.querySelector(".date-picker").addEventListener("input", actualizarResumenItinerario);
+            newRow.querySelector(".actividadItinerario").addEventListener("input", actualizarResumenItinerario);
+
+
+            // Update the summary immediately when a new activity is added
+            actualizarResumenItinerario();
+        }
+
+        function removerActividad(button) {
+            const row = button.parentElement;
+            row.remove();
+            calcularCotizacion(); // Ensure total is updated after removal
+            actualizarResumenItinerario(); // Update the itinerary summary
+        }
+
+
+        // Global variable to store transportation pricing loaded from the database
+let transportationPricing = null;
+
+// Function to load transportation pricing data from your API
+async function loadTransportationPricing() {
+  try {
+    const response = await fetch('http://localhost:3000/api/transportation');
+    if (!response.ok) {
+      throw new Error('Error fetching transportation pricing data');
+    }
+    transportationPricing = await response.json();
+    console.log("Transportation pricing loaded:", transportationPricing);
+    // Optionally, recalculate quotations after loading the data
+    calcularPrecios();
+    calcularPreciosRegreso();
+  } catch (error) {
+    console.error("Error loading transportation pricing:", error);
+  }
+}
+
+
+function getPricePerPerson(pax) {
+  if (!transportationPricing) return 0;
+  let price = 0;
+  transportationPricing.saleByPerson.forEach(rule => {
+    if (pax >= rule.minPax && pax <= rule.maxPax) {
+      price = rule.priceEach;
+    }
+  });
+  return price;
+}
+
+function getCostPerCar(pax) {
+  if (!transportationPricing) return 0;
+  let cost = 0;
+  transportationPricing.costByCar.forEach(rule => {
+    if (pax >= rule.minPax && pax <= rule.maxPax) {
+      cost = rule.priceCar;
+    }
+  });
+  return cost;
+}
+
+
+
+
+// Call this function when the page loads
+window.addEventListener('DOMContentLoaded', loadTransportationPricing);
+
+function calcularPrecios() {
+  let pax = parseInt(document.getElementById("pax").value) || 0;
+  
+  // Use helper functions to get the appropriate values
+  let precioPorPersona = getPricePerPerson(pax);
+  let costoCarro = getCostPerCar(pax);
+
+  let totalVenta = precioPorPersona * pax;
+  let totalNeto = costoCarro;
+
+  document.getElementById("neto").textContent = totalNeto.toLocaleString();
+  document.getElementById("venta").textContent = totalVenta.toLocaleString();
+            
+  document.getElementById("precioTransporteNeto").value = totalNeto;
+  document.getElementById("precioTransporteVenta").value = totalVenta;
+  
+  calcularCotizacion(); // if this function exists to update further calculations
+}
+
+function calcularPreciosRegreso() {
+  let pax = parseInt(document.getElementById("paxRegreso").value) || 0;
+  
+  // Use the same helper functions for the "regreso" calculation
+  let precioPorPersona = getPricePerPerson(pax);
+  let costoCarro = getCostPerCar(pax);
+
+  let totalVenta = precioPorPersona * pax;
+  let totalNeto = costoCarro;
+
+  document.getElementById("netoRegreso").textContent = totalNeto.toLocaleString();
+  document.getElementById("ventaRegreso").textContent = totalVenta.toLocaleString();
+            
+  document.getElementById("precioTransporteNetoRegreso").value = totalNeto;
+  document.getElementById("precioTransporteVentaRegreso").value = totalVenta;
+  
+  calcularCotizacion(); // update overall quotation if needed
+}
+
+        function calcularCotizacion() {
+            let numPersonas = parseInt(document.getElementById("numPersonas").value) || 0;
+            let precioHotelNeto = 0;
+            let utilidadHotel = 0;
+
+            document.querySelectorAll("#hotelContainer .hotel-row").forEach(row => {
+                precioHotelNeto += parseInt(row.querySelector("input[type='number']").value) || 0;
+                utilidadHotel += parseInt(row.querySelectorAll("input[type='number']")[1].value) || 0;
+            });
+
+            let precioTransporteNeto = parseInt(document.getElementById("precioTransporteNeto").value) || 0;
+            let precioTransporteVenta = parseInt(document.getElementById("precioTransporteVenta").value) || 0;
+            let precioTransporteNetoRegreso = parseInt(document.getElementById("precioTransporteNetoRegreso").value) || 0;
+            let precioTransporteVentaRegreso = parseInt(document.getElementById("precioTransporteVentaRegreso").value) || 0;
+            let costosAdicionalesNeto = parseInt(document.getElementById("costosAdicionalesNeto").value) || 0;
+            let costosAdicionalesUtilidad = parseInt(document.getElementById("costosAdicionalesUtilidad").value) || 0;
+
+            let totalNeto = precioHotelNeto + precioTransporteNeto + precioTransporteNetoRegreso + costosAdicionalesNeto;
+            let exchangeRate = parseFloat(document.getElementById("exchangeRate").value) || 3900;
+            let totalVenta = precioHotelNeto + (utilidadHotel * exchangeRate) + precioTransporteVenta + precioTransporteVentaRegreso + costosAdicionalesNeto + costosAdicionalesUtilidad;
+
+            let tourCheckboxes = document.querySelectorAll("#tourCheckboxes input[type='checkbox']");
+            let totalToursNeto = 0;
+            let totalToursVenta = 0;
+            tourCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    let [neto, venta] = checkbox.value.split('-').map(Number);
+                    totalToursNeto += neto * numPersonas;
+                    totalToursVenta += (venta * exchangeRate) * numPersonas; // Convert to COP before summing
+                }
+            });
+
+            totalNeto += totalToursNeto;
+            totalVenta += totalToursVenta;
+
+            let totalPpNeto = Math.floor((precioHotelNeto + precioTransporteNeto + precioTransporteNetoRegreso + totalToursNeto + costosAdicionalesNeto) / numPersonas);
+            let totalPpVenta = Math.floor(totalVenta / numPersonas);
+            let totalPpVentaUsd = Math.round((totalPpVenta / exchangeRate) * 100) / 100;
+            let totalVentaUsd = Math.round((totalVenta / exchangeRate) * 100) / 100;
+
+            let utilidades = Math.floor(totalVenta - totalNeto);
+            let utilidadPp = Math.floor(utilidades / numPersonas);
+
+            document.getElementById("totalPpNetoCop").textContent = totalPpNeto.toLocaleString();
+            document.getElementById("totalPpVentaCop").textContent = totalPpVenta.toLocaleString();
+            document.getElementById("totalPpVentaUsd").textContent = totalPpVentaUsd;
+            document.getElementById("totalNetoCop").textContent = totalNeto.toLocaleString();
+            document.getElementById("totalVentaCop").textContent = totalVenta.toLocaleString();
+            document.getElementById("totalVentaUsd").textContent = totalVentaUsd;
+            document.getElementById("totalUtilidad").textContent = utilidades.toLocaleString();
+            document.getElementById("utilidadPp").textContent = utilidadPp.toLocaleString();
+            
+
+            actualizarResumenHoteles();
+            actualizarResumenItinerario();
+            actualizarResumenTotalPasajeros();
+            actualizarResumenTotal();
+        }
+
+        function agregarHotel() {
+            const hotelContainer = document.getElementById('hotelContainer');
+            const newHotelRow = document.createElement('div');
+            newHotelRow.className = 'hotel-row new-hotel';
+            newHotelRow.innerHTML = `
+                <label>Nombre:</label>
+                <input type="text" class="nombreHotel">
+                
+                <label>Acomodación:</label>
+                <input type="text" class="tipoAcomodacion">
+                
+                <label>Precio Neto de la Estadía en COP:</label>
+                <input type="number" class="precioHotelNeto" value="0">
+                
+                <label>Utilidad de la Estadía en USD:</label>
+                <input type="number" class="utilidadHotel" value="0">
+                
+                <button type="button" onclick="removerHotel(this)">Remover</button>
+            `;
+            hotelContainer.appendChild(newHotelRow);
+
+            // Attach onchange event listeners to update calculations
+            const precioHotelNetoField = newHotelRow.querySelector(".precioHotelNeto");
+            const utilidadHotelField = newHotelRow.querySelector(".utilidadHotel");
+
+            if (precioHotelNetoField) {
+                precioHotelNetoField.addEventListener("change", calcularCotizacion);
+            }
+            if (utilidadHotelField) {
+                utilidadHotelField.addEventListener("change", calcularCotizacion);
+            }
+
+            // Attach event listeners to update the summary without triggering calculations
+            newHotelRow.querySelector(".nombreHotel").addEventListener("input", actualizarResumenHoteles);
+            newHotelRow.querySelector(".tipoAcomodacion").addEventListener("input", actualizarResumenHoteles);
+
+            // Update the summary immediately when a new hotel is added
+            actualizarResumenHoteles();
+        }
+
+        function removerHotel(button) {
+            const hotelRow = button.parentElement;
+            hotelRow.remove();
+            calcularCotizacion();
+        }
+
+        function actualizarResumenHoteles() {
+            let resumenHoteles = document.getElementById("resumenHoteles");
+            resumenHoteles.innerHTML = ''; // Clear previous summary
+
+            document.querySelectorAll("#hotelContainer .hotel-row").forEach(row => {
+                let nombreHotel = row.querySelector(".nombreHotel").value.trim();
+                let tipoAcomodacion = row.querySelector(".tipoAcomodacion").value.trim();
+
+                let hotelInfo = document.createElement('p');
+                hotelInfo.innerHTML = `<strong>Hotel:</strong> <span>${nombreHotel || 'N/A'}</span><br>
+                                       <strong>Acomodación:</strong> <span>${tipoAcomodacion || 'N/A'}</span>`;
+            resumenHoteles.appendChild(hotelInfo);
+        });
+    }
+
+        function actualizarResumenItinerario() {
+            let resumenItinerario = document.getElementById("resumenItinerario");
+            resumenItinerario.innerHTML = '<p><strong>Itinerario:</strong></p>'; // Clear previous summary
+
+            document.querySelectorAll("#itinerarioContainer .row").forEach(row => {
+                let fecha = row.querySelector(".date-picker") ? row.querySelector(".date-picker").value.trim() : "";
+                let actividad = row.querySelector(".actividadItinerario") ? row.querySelector(".actividadItinerario").value.trim() : "";
+                
+
+                if (fecha || actividad) { // Only display rows that have data
+                    let itinerarioInfo = document.createElement('p');
+                    itinerarioInfo.innerHTML = `<strong>Fecha:</strong> <span>${fecha || 'N/A'}</span><br>
+                                                <strong>Actividad:</strong> <span>${actividad || 'N/A'}</span>`;
+            resumenItinerario.appendChild(itinerarioInfo);
+        }
+    });
+}
+
+        function actualizarResumenPasajeros() {
+            let numPersonas = document.getElementById("numPersonas").value;
+            document.getElementById("numPasajeros").textContent = numPersonas;
+        }
+
+        function actualizarResumenTotalPasajeros() {
+            let numPersonas = document.getElementById("numPersonas").value;
+            let totalPpVentaUsd = parseFloat(document.getElementById("totalPpVentaUsd").textContent) || 0;
+            document.getElementById("totalPorPasajero").textContent = `${numPersonas} X ${totalPpVentaUsd.toFixed(2)} USD`;
+
+        }
+
+        function actualizarResumenTotal() {
+            let totalVentaUsd = parseFloat(document.getElementById("totalVentaUsd").textContent) || 0;
+            document.getElementById("totalCotizacionUsd").textContent = `${totalVentaUsd.toFixed(2)} USD`;
+
+        }
+
+        function copiarResumen() {
+            let resumenElement = document.querySelector(".summary");
+            let copiarResumenBtn = document.getElementById("copiarResumenBtn");
+            let verResumenBtn = document.querySelector("button[onclick='saveAndRedirect()']");
+            let nuevaCotizacionBtn = document.querySelector("button[onclick='resetForm()']");
+
+            // Hide the buttons temporarily
+            copiarResumenBtn.style.display = "none";
+            verResumenBtn.style.display = "none";
+            nuevaCotizacionBtn.style.display = "none";
+
+            let range = document.createRange();
+            range.selectNodeContents(resumenElement);
+            let selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            try {
+                navigator.clipboard.writeText(resumenElement.innerText)
+                    .then(() => alert("Resumen copiado al portapapeles"))
+                    .catch(err => alert("Error al copiar el resumen: " + err));
+            } catch (err) {
+                alert("Error al copiar el resumen");
+            }
+
+            selection.removeAllRanges();
+
+            // Show the buttons again
+            copiarResumenBtn.style.display = "block";
+            verResumenBtn.style.display = "block";
+            nuevaCotizacionBtn.style.display = "block";
+        }
+
+
+
+
+        
+        function saveAndRedirect() {
+    try {
+        // Ensure all calculations are up-to-date
+        calcularCotizacion();
+
+        // ✅ Function to capture all dynamically added hotels
+        function guardarHoteles() {
+            let hoteles = [];
+            document.querySelectorAll("#hotelContainer .hotel-row").forEach(row => {
+                // Force onchange event on relevant fields
+                const precioNetoField = row.querySelector(".precioHotelNeto");
+                const utilidadField = row.querySelector(".utilidadHotel");
+
+                if (precioNetoField) {
+                    precioNetoField.dispatchEvent(new Event("change"));
+                }
+                if (utilidadField) {
+                    utilidadField.dispatchEvent(new Event("change"));
+                }
+
+                // Collect hotel data
+                let precioNeto = precioNetoField ? precioNetoField.value : "0";
+                let utilidad = utilidadField ? utilidadField.value : "0";
+
+                hoteles.push({
+                    nombre: row.querySelector(".nombreHotel")?.value.trim() || "N/A",
+                    acomodacion: row.querySelector(".tipoAcomodacion")?.value.trim() || "N/A",
+                    precioNeto: parseInt(precioNeto) || 0, // Convert to number to avoid text issues
+                    utilidad: parseInt(utilidad) || 0
+                });
+            });
+            return hoteles;
+        }
+
+        // ✅ Function to force update all input fields before saving
+        function actualizarValoresAntesDeGuardar() {
+            document.querySelectorAll("input").forEach(input => {
+                if (input.type === "number" || input.type === "text") {
+                    input.dispatchEvent(new Event("change")); // Force update
+                }
+            });
+        }
+
+        // 🔥 Force update all input fields before capturing data
+        actualizarValoresAntesDeGuardar();
+
+        // ✅ Capture form values **AFTER updating inputs**
+        const data = {
+            numPersonas: document.getElementById("numPersonas")?.value || "N/A",
+            exchangeRate: document.getElementById("exchangeRate")?.value || "N/A",
+            pax: document.getElementById("pax")?.value || "N/A", // Include pax
+            paxRegreso: document.getElementById("paxRegreso")?.value || "N/A", // Include paxRegreso
+            precioTransporteNeto: document.getElementById("precioTransporteNeto")?.value || "N/A",
+            precioTransporteNetoRegreso: document.getElementById("precioTransporteNetoRegreso")?.value || "N/A",
+
+            totalToursNeto: document.querySelector("#tourCheckboxes input[type='checkbox']:checked") ? 
+                Array.from(document.querySelectorAll("#tourCheckboxes input[type='checkbox']:checked"))
+                .map(checkbox => (parseInt(checkbox.value.split('-')[0]) || 0) * (parseInt(document.getElementById("numPersonas").value) || 0))
+                .reduce((a, b) => a + b, 0) : 0,
+
+            costosAdicionalesNeto: document.getElementById("costosAdicionalesNeto")?.value || "N/A",
+            costosAdicionalesDescripcion: document.getElementById("descripcionCostosAdicionales")?.value || "N/A",
+            totalVentaCop: document.getElementById("totalVentaCop")?.textContent || "N/A",
+            totalVentaUsd: document.getElementById("totalVentaUsd")?.textContent || "N/A",
+            totalPpVentaUsd: document.getElementById("totalPpVentaUsd")?.textContent || "N/A",
+            totalNetoCop: document.getElementById("totalNetoCop")?.textContent || "N/A",
+            totalUtilidad: document.getElementById("totalUtilidad")?.textContent || "N/A",
+
+            itinerario: Array.from(document.querySelectorAll("#itinerarioContainer .row")).map(row => ({
+                fecha: row.querySelector(".date-picker")?.value || "",
+                actividad: row.querySelector(".actividadItinerario")?.value || ""
+            })),
+
+            // ✅ Capture dynamically added hotels before saving
+            hoteles: guardarHoteles()
+        };
+
+        console.log("Data before saving:", data); // Debugging log
+
+        // ✅ Store data in localStorage
+        localStorage.setItem("cotizacionData", JSON.stringify(data));
+
+        console.log("Data saved successfully in localStorage");
+
+        // ✅ Redirect to resumen.html
+        window.location.href = "resumen.html";
+    } catch (error) {
+        console.error("Error in saveAndRedirect:", error);
+        alert("Error al guardar la cotización. Revisa la consola para más detalles.");
+    }
+}
+
+
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // Retrieve data from localStorage
+            const savedData = JSON.parse(localStorage.getItem("cotizacionData"));
+
+            if (savedData) {
+                // Restore "Número de Personas" for transportation
+                if (savedData.pax) {
+                    document.getElementById("pax").value = savedData.pax;
+                }
+                if (savedData.paxRegreso) {
+                    document.getElementById("paxRegreso").value = savedData.paxRegreso;
+                }
+
+                // Set the "Número de Personas" input value
+                if (savedData.numPersonas) {
+                    document.getElementById("numPersonas").value = savedData.numPersonas;
+                    document.getElementById("numPasajeros").textContent = savedData.numPersonas;
+                }
+
+                // Automatically calculate transportation prices on page load
+                calcularPrecios();
+                calcularPreciosRegreso();
+
+                // Restore itinerario
+                if (savedData.itinerario) {
+                    const itinerarioContainer = document.getElementById('itinerarioContainer');
+                    itinerarioContainer.innerHTML = ''; // Clear existing rows
+
+                    savedData.itinerario.forEach(item => {
+                        const newRow = document.createElement('div');
+                        newRow.className = 'row';
+                        newRow.innerHTML = `
+                            <div>
+                                <label>Fecha:</label>
+                                <input type="date" class="date-picker" value="${item.fecha}" onchange="actualizarResumenItinerario()">
+                            </div>
+                            <div>
+                                <label>Actividad:</label>
+                                <input type="text" class="actividadItinerario" value="${item.actividad}" onchange="actualizarResumenItinerario()">
+                            </div>
+                            <button type="button" onclick="removerActividad(this)">Remover</button>
+                        `;
+                        itinerarioContainer.appendChild(newRow);
+
+                        // Apply Flatpickr only to the new date input
+                        const newDatePicker = newRow.querySelector('.date-picker');
+                        flatpickr(newDatePicker, {
+                            locale: "es",
+                            dateFormat: "Y-m-d",
+                            disableMobile: true, // Forces Flatpickr on mobile instead of native date picker
+                            onChange: function() {
+                                actualizarResumenItinerario();
+                            }
+                        });
+                    });
+                }
+
+                // Restore hoteles
+                if (savedData.hoteles) {
+                    const hotelContainer = document.getElementById('hotelContainer');
+                    hotelContainer.innerHTML = ''; // Clear existing rows
+
+                    savedData.hoteles.forEach(hotel => {
+                        const newHotelRow = document.createElement('div');
+                        newHotelRow.className = 'hotel-row new-hotel';
+                        newHotelRow.innerHTML = `
+                            <label>Nombre:</label>
+                            <input type="text" class="nombreHotel" value="${hotel.nombre}">
+                            
+                            <label>Acomodación:</label>
+                            <input type="text" class="tipoAcomodacion" value="${hotel.acomodacion}">
+                            
+                            <label>Precio Neto de la Estadía en COP:</label>
+                            <input type="number" class="precioHotelNeto" value="${parseInt(hotel.precioNeto) || 0}" onchange="calcularCotizacion()">
+                            
+                            <label>Utilidad de la Estadía en USD:</label>
+                            <input type="number" class="utilidadHotel" value="${parseInt(hotel.utilidad) || 0}" onchange="calcularCotizacion()">
+                            
+                            <button type="button" onclick="removerHotel(this)">Remover</button>
+                        `;
+                        hotelContainer.appendChild(newHotelRow);
+
+                        // Attach event listeners to update the summary without triggering calculations
+                        newHotelRow.querySelector(".nombreHotel").addEventListener("input", actualizarResumenHoteles);
+                        newHotelRow.querySelector(".tipoAcomodacion").addEventListener("input", actualizarResumenHoteles);
+                    });
+                }
+            }
+
+            // Attach event listeners to the default hotel row
+            let defaultNombreHotel = document.querySelector(".nombreHotel");
+            let defaultTipoAcomodacion = document.querySelector(".tipoAcomodacion");
+
+            if (defaultNombreHotel) {
+                defaultNombreHotel.addEventListener("input", actualizarResumenHoteles);
+            }
+            if (defaultTipoAcomodacion) {
+                defaultTipoAcomodacion.addEventListener("input", actualizarResumenHoteles);
+            }
+
+            // Attach event listeners to the default itinerary row
+            let defaultFechaItinerario = document.querySelector(".date-picker");
+            let defaultActividadItinerario = document.querySelector(".actividadItinerario");
+
+
+            if (defaultFechaItinerario) {
+                defaultFechaItinerario.addEventListener("input", actualizarResumenItinerario);
+            }
+            if (defaultActividadItinerario) {
+                defaultActividadItinerario.addEventListener("input", actualizarResumenItinerario);
+            }
+
+            // Ensure the summary updates on page load
+            actualizarResumenHoteles();
+            actualizarResumenItinerario();
+            actualizarResumenPasajeros();
+            actualizarResumenTotalPasajeros();
+            actualizarResumenTotal();
+        });
+
+        function resetForm() {
+            // Clear localStorage
+            localStorage.removeItem("cotizacionData");
+
+            // Reset all input fields
+            document.querySelectorAll("input").forEach(input => {
+                if (input.type === "number") {
+                    input.value = input.defaultValue || 0;
+                } else if (input.type === "text" || input.type === "date") {
+                    input.value = "";
+                } else if (input.type === "checkbox") {
+                    input.checked = false;
+                }
+            });
+
+            // Reset all summary spans
+            document.querySelectorAll("span").forEach(span => {
+                span.textContent = "0";
+            });
+
+            // Clear dynamically added rows (hotels and itinerary)
+            document.getElementById("hotelContainer").innerHTML = `
+                <div class="hotel-row">
+                    <label>Nombre:</label>
+                    <input type="text" class="nombreHotel">
+                    
+                    <label>Acomodación:</label>
+                    <input type="text" class="tipoAcomodacion">
+                    
+                    <label>Precio Neto de la Estadía en COP:</label>
+                    <input type="number" class="precioHotelNeto" value="0" onchange="calcularCotizacion()">
+                    
+                    <label>Utilidad de la Estadía en USD:</label>
+                    <input type="number" class="utilidadHotel" value="0" onchange="calcularCotizacion()"> 
+                </div>
+            `;
+            document.getElementById("itinerarioContainer").innerHTML = `
+                <div class="row">
+                    <div>
+                        <label>Fecha:</label>
+                        <input type="date" class="date-picker" onchange="actualizarResumenItinerario()">
+                    </div>
+                    <div>
+                        <label>Actividad:</label>
+                        <input type="text" class="actividadItinerario" onchange="actualizarResumenItinerario()">
+                    </div>
+                    <button type="button" onclick="removerActividad(this)">Remover</button>
+                </div>
+            `;
+
+            // Reinitialize Flatpickr for date pickers
+            flatpickr(".date-picker", {
+                locale: "es",
+                dateFormat: "Y-m-d",
+                disableMobile: true
+            });
+
+            // Reset summary sections
+            actualizarResumenHoteles();
+            actualizarResumenItinerario();
+            actualizarResumenPasajeros();
+            actualizarResumenTotalPasajeros();
+            actualizarResumenTotal();
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // Attach onchange event to #pax and #paxRegreso to trigger calculations automatically
+            document.getElementById("pax").addEventListener("change", calcularPrecios);
+            document.getElementById("paxRegreso").addEventListener("change", calcularPreciosRegreso);
+        });
+    </script>
+    <script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Attach onchange events to all relevant input fields to trigger calculations
+    document.getElementById("numPersonas").addEventListener("change", () => {
+        calcularCotizacion();
+        actualizarResumenPasajeros();
+        actualizarResumenTotalPasajeros();
+        actualizarResumenTotal();
+    });
+
+    document.getElementById("exchangeRate").addEventListener("change", calcularCotizacion);
+
+    document.getElementById("pax").addEventListener("change", () => {
+        calcularPrecios();
+        calcularCotizacion();
+    });
+
+    document.getElementById("paxRegreso").addEventListener("change", () => {
+        calcularPreciosRegreso();
+        calcularCotizacion();
+    });
+
+    document.getElementById("costosAdicionalesNeto").addEventListener("change", calcularCotizacion);
+    document.getElementById("costosAdicionalesUtilidad").addEventListener("change", calcularCotizacion);
+
+    // Attach onchange events to dynamically added hotel and itinerary fields
+    function attachDynamicEventListeners() {
+        document.querySelectorAll(".precioHotelNeto, .utilidadHotel").forEach(input => {
+            input.addEventListener("change", calcularCotizacion);
+        });
+
+        document.querySelectorAll(".nombreHotel, .tipoAcomodacion").forEach(input => {
+            input.addEventListener("input", actualizarResumenHoteles);
+        });
+
+        document.querySelectorAll(".date-picker, .actividadItinerario").forEach(input => {
+            input.addEventListener("input", actualizarResumenItinerario);
+        });
+    }
+
+    // Automatically attach listeners to dynamically added elements
+    const observer = new MutationObserver(() => {
+        attachDynamicEventListeners();
+    });
+
+    observer.observe(document.getElementById("hotelContainer"), { childList: true });
+    observer.observe(document.getElementById("itinerarioContainer"), { childList: true });
+
+    // Attach onchange events to tour checkboxes
+    document.querySelectorAll("#tourCheckboxes input[type='checkbox']").forEach(checkbox => {
+        checkbox.addEventListener("change", calcularCotizacion);
+    });
+
+    // Automatically calculate transportation prices on page load
+    calcularPrecios();
+    calcularPreciosRegreso();
+
+    // Ensure the summary updates on page load
+    actualizarResumenHoteles();
+    actualizarResumenItinerario();
+    actualizarResumenPasajeros();
+    actualizarResumenTotalPasajeros();
+    actualizarResumenTotal();
+});
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Retrieve data from localStorage
+        const savedData = JSON.parse(localStorage.getItem("cotizacionData"));
+
+        if (savedData) {
+            // Restore "Número de Personas" and exchange rate
+            if (savedData.numPersonas) {
+                document.getElementById("numPersonas").value = savedData.numPersonas;
+                document.getElementById("numPasajeros").textContent = savedData.numPersonas;
+            }
+            if (savedData.exchangeRate) {
+                document.getElementById("exchangeRate").value = savedData.exchangeRate;
+            }
+
+            // Restore transportation pax values
+            if (savedData.pax) {
+                document.getElementById("pax").value = savedData.pax;
+            }
+            if (savedData.paxRegreso) {
+                document.getElementById("paxRegreso").value = savedData.paxRegreso;
+            }
+
+            // Restore tours
+            if (savedData.tours) {
+                document.querySelectorAll("#tourCheckboxes input[type='checkbox']").forEach(checkbox => {
+                    checkbox.checked = savedData.tours.includes(checkbox.value);
+                });
+            }
+
+            // Restore itinerario
+            if (savedData.itinerario) {
+                const itinerarioContainer = document.getElementById('itinerarioContainer');
+                itinerarioContainer.innerHTML = ''; // Clear existing rows
+
+                savedData.itinerario.forEach(item => {
+                    const newRow = document.createElement('div');
+                    newRow.className = 'row';
+                    newRow.innerHTML = `
+                        <div>
+                            <label>Fecha:</label>
+                            <input type="date" class="date-picker" value="${item.fecha}" onchange="actualizarResumenItinerario()">
+                        </div>
+                        <div>
+                            <label>Actividad:</label>
+                            <input type="text" class="actividadItinerario" value="${item.actividad}" onchange="actualizarResumenItinerario()">
+                        </div>
+                        <button type="button" onclick="removerActividad(this)">Remover</button>
+                    `;
+                    itinerarioContainer.appendChild(newRow);
+
+                    // Apply Flatpickr only to the new date input
+                    const newDatePicker = newRow.querySelector('.date-picker');
+                    flatpickr(newDatePicker, {
+                        locale: "es",
+                        dateFormat: "Y-m-d",
+                        disableMobile: true,
+                        onChange: function () {
+                            actualizarResumenItinerario();
+                        }
+                    });
+                });
+            }
+
+            // Restore hoteles
+            if (savedData.hoteles) {
+                const hotelContainer = document.getElementById('hotelContainer');
+                hotelContainer.innerHTML = ''; // Clear existing rows
+
+                savedData.hoteles.forEach(hotel => {
+                    const newHotelRow = document.createElement('div');
+                    newHotelRow.className = 'hotel-row new-hotel';
+                    newHotelRow.innerHTML = `
+                        <label>Nombre:</label>
+                        <input type="text" class="nombreHotel" value="${hotel.nombre}">
+                        
+                        <label>Acomodación:</label>
+                        <input type="text" class="tipoAcomodacion" value="${hotel.acomodacion}">
+                        
+                        <label>Precio Neto de la Estadía en COP:</label>
+                        <input type="number" class="precioHotelNeto" value="${parseInt(hotel.precioNeto) || 0}" onchange="calcularCotizacion()">
+                        
+                        <label>Utilidad de la Estadía en USD:</label>
+                        <input type="number" class="utilidadHotel" value="${parseInt(hotel.utilidad) || 0}" onchange="calcularCotizacion()">
+                        
+                        <button type="button" onclick="removerHotel(this)">Remover</button>
+                    `;
+                    hotelContainer.appendChild(newHotelRow);
+
+                    // Attach event listeners to update the summary without triggering calculations
+                    newHotelRow.querySelector(".nombreHotel").addEventListener("input", actualizarResumenHoteles);
+                    newHotelRow.querySelector(".tipoAcomodacion").addEventListener("input", actualizarResumenHoteles);
+                });
+            }
+
+            // Restore additional costs
+            if (savedData.costosAdicionalesNeto) {
+                document.getElementById("costosAdicionalesNeto").value = savedData.costosAdicionalesNeto;
+            }
+            if (savedData.costosAdicionalesUtilidad) {
+                document.getElementById("costosAdicionalesUtilidad").value = savedData.costosAdicionalesUtilidad;
+            }
+        }
+
+        // Introduce a slight delay to ensure all fields are populated before recalculating
+        setTimeout(() => {
+            // Automatically calculate all values
+            calcularPrecios();
+            calcularPreciosRegreso();
+            calcularCotizacion();
+
+            // Ensure the summary updates
+            actualizarResumenHoteles();
+            actualizarResumenItinerario();
+            actualizarResumenPasajeros();
+            actualizarResumenTotalPasajeros();
+            actualizarResumenTotal();
+        }, 100); // Delay of 100ms
+    });
+</script>
+
+
+
+<script>
+    async function loadToursForQuotation() {
+      try {
+        const response = await fetch('http://localhost:3000/api/tours');
+        if (!response.ok) throw new Error('Error fetching tours data');
+        const tours = await response.json();
+        
+        // Find the container where the checkboxes should appear
+        const tourCheckboxesContainer = document.getElementById('tourCheckboxes');
+        tourCheckboxesContainer.innerHTML = ''; // Clear any existing content
+        
+        // Loop through the tours array and create checkbox inputs dynamically
+        tours.forEach(tour => {
+          const label = document.createElement('label');
+          // Here we use the internoCop and ventaUsd values to build the checkbox value.
+          // Adjust the format if needed.
+          label.innerHTML = `<input type="checkbox" value="${tour.internoCop}-${tour.ventaUsd}" onchange="calcularCotizacion()"> ${tour.name} (Interno: COP ${tour.internoCop.toLocaleString()} / Venta: USD ${tour.ventaUsd})`;
+          tourCheckboxesContainer.appendChild(label);
+        });
+      } catch (error) {
+        console.error("Error loading tours for quotation:", error);
+      }
+    }
+  
+    // Call this function when the page loads
+    window.addEventListener('DOMContentLoaded', loadToursForQuotation);
+  </script>
+  
+
+</body>
+</html>
