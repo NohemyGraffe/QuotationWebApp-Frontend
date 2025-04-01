@@ -30,11 +30,10 @@
   <script>
     async function login(e) {
       e.preventDefault();
-      
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
-      
       try {
+        // Update the URL below with your deployed backend's login endpoint URL.
         const res = await fetch('https://your-backend-url.herokuapp.com/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -42,15 +41,16 @@
         });
         const data = await res.json();
         if (data.token) {
-          // Store token and role in localStorage
+          // Save token and role
           localStorage.setItem('token', data.token);
           localStorage.setItem('role', data.role);
-          
-          // Redirect based on role
+          // Redirect based on role:
+          // For admins, send to the current full homepage (e.g., adminDashboard.html)
+          // For staff, send to a simpler homepage (e.g., staffDashboard.html) that only has "Crear Nueva Cotización"
           if (data.role === 'admin') {
-            window.location.href = 'adminDashboard.html';  // For admin users
+            window.location.href = 'adminDashboard.html'; // Your current homepage for admins
           } else {
-            window.location.href = 'cotizacion.html';  // For staff users
+            window.location.href = 'staffDashboard.html'; // A new, simpler homepage for staff
           }
         } else {
           showNotification(data.message || 'Login failed', 'danger');
@@ -59,7 +59,7 @@
         showNotification("Error: " + error.message, "danger");
       }
     }
-    
+
     function showNotification(message, type = 'success') {
       const notifDiv = document.getElementById('login-notification');
       notifDiv.innerHTML = `
@@ -69,7 +69,7 @@
         </div>
       `;
     }
-    
+
     document.getElementById('login-form').addEventListener('submit', login);
   </script>
 </body>
