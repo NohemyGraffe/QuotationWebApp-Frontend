@@ -18,6 +18,32 @@
       margin: 10px;
       padding: 20px 40px;
       font-size: 1.25em;
+      border: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-decoration: none;
+      border-radius: 8px; /* Rounded edges */
+    }
+    .menu-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+    /* Custom button styles */
+    .btn-blue {
+      background-color: #007bff;
+      color: #fff;
+    }
+    .btn-blue:hover {
+      background-color: #0069d9;
+      color: #fff;
+    }
+    .btn-green {
+      background-color: #28a745;
+      color: #fff;
+    }
+    .btn-green:hover {
+      background-color: #218838;
+      color: #fff;
     }
   </style>
 </head>
@@ -26,14 +52,14 @@
     <h1 class="mb-4">Bienvenido a la página de gestión de datos MultyViajes</h1>
     <p class="mb-5">Seleccione una opción del menú:</p>
     
-    <!-- Button to create a quotation -->
-    <a href="cotizacion.html" class="btn btn-primary menu-button">Crear Cotización</a>
+    <!-- Button to create a quotation (blue) -->
+    <a href="cotizacion.html" class="menu-button btn-blue">Crear Cotización</a>
     
-    <!-- Button to manage tours information -->
-    <a href="adminTours.html" class="btn btn-success menu-button">Manejar Información de los Tours</a>
+    <!-- Button to manage tours information (green) -->
+    <a href="adminTours.html" class="menu-button btn-green">Manejar Información de los Tours</a>
     
-    <!-- Button to manage transportation information -->
-    <a href="adminTransp.html" class="btn btn-info menu-button">Manejar Información de los Traslados</a>
+    <!-- Button to manage transportation information (green) -->
+    <a href="adminTransp.html" class="menu-button btn-green">Manejar Información de los Traslados</a>
   </div>
   
   <!-- Bootstrap Bundle with Popper -->
