@@ -185,7 +185,6 @@
         <input type="hidden" id="precioTransporteNetoRegreso" value="0">
         <input type="hidden" id="precioTransporteVentaRegreso" value="0">
    
-
         <h3>Tours Incluidos en la Cotización</h3>
         <div class="checkbox-group" id="tourCheckboxes">
             <!-- Tour checkboxes will be populated here dynamically -->
@@ -213,10 +212,10 @@
                 <label>Acomodación:</label>
                 <input type="text" class="tipoAcomodacion">
                 
-                <label>Precio Neto de la Estadía en COP:</label>
+                <label>Total de la Estadía en Neto (COP):</label>
                 <input type="number" class="precioHotelNeto" value="0" onchange="calcularCotizacion()">
                 
-                <label>Utilidad de la Estadía en USD:</label>
+                <label>Utilidad de la Estadía PP (COP):</label>
                 <input type="number" class="utilidadHotel" value="0" onchange="calcularCotizacion()"> 
                 
                 <button type="button" onclick="removerHotel(this)">Remover</button>
@@ -227,21 +226,21 @@
   
         <div class="results">
 
-            <h3>Total en Servicios por Persona</h3>
+            <h3>Total por Persona</h3>
 
-            <p><strong>Total Neto (COP):</strong> <span id="totalPpNetoCop">0</span> COP</p>
-            <p><strong>Total con Utilidad (COP):</strong> <span id="totalPpVentaCop">0</span> COP</p>
+            <p><strong>Neto (COP):</strong> <span id="totalPpNetoCop">0</span> COP</p>
+            <p><strong>Con Utilidad (COP):</strong> <span id="totalPpVentaCop">0</span> COP</p>
             <p><strong>Total con Utilidad en USD:</strong> <span id="totalPpVentaUsd">0</span> USD</p>
 
             <h3>Total de la Cotización</h3>
 
-            <p><strong>Total Neto (COP):</strong> <span id="totalNetoCop">0</span> COP</p>
-            <p><strong>Total con Utilidad (COP):</strong> <span id="totalVentaCop">0</span> COP</p>
+            <p><strong>Neto (COP):</strong> <span id="totalNetoCop">0</span> COP</p>
+            <p><strong>Con Utilidad (COP):</strong> <span id="totalVentaCop">0</span> COP</p>
             <p><strong>Total con Utilidad en USD:</strong> <span id="totalVentaUsd">0</span> USD</p>
 
             <h3>Ganancias de la Empresa</h3>
 
-            <p><strong>Total Utilidad (COP):</strong> <span id="totalUtilidad">0</span> COP</p>
+            <p><strong>Total de Utilidad (COP):</strong> <span id="totalUtilidad">0</span> COP</p>
             <p><strong>Utilidad por Persona (COP):</strong> <span id="utilidadPp">0</span> COP</p>
 
         </div>
@@ -483,10 +482,10 @@ function calcularPreciosRegreso() {
                 <label>Acomodación:</label>
                 <input type="text" class="tipoAcomodacion">
                 
-                <label>Precio Neto de la Estadía en COP:</label>
+                <label>Total de la Estadía en Neto (COP):</label>
                 <input type="number" class="precioHotelNeto" value="0">
                 
-                <label>Utilidad de la Estadía en USD:</label>
+                <label>Utilidad de la Estadía PP (COP):</label>
                 <input type="number" class="utilidadHotel" value="0">
                 
                 <button type="button" onclick="removerHotel(this)">Remover</button>
@@ -772,10 +771,10 @@ function calcularPreciosRegreso() {
                             <label>Acomodación:</label>
                             <input type="text" class="tipoAcomodacion" value="${hotel.acomodacion}">
                             
-                            <label>Precio Neto de la Estadía en COP:</label>
+                            <label>Total de la Estadía en Neto (COP):</label>
                             <input type="number" class="precioHotelNeto" value="${parseInt(hotel.precioNeto) || 0}" onchange="calcularCotizacion()">
                             
-                            <label>Utilidad de la Estadía en USD:</label>
+                            <label>Utilidad de la Estadía PP (COP):</label>
                             <input type="number" class="utilidadHotel" value="${parseInt(hotel.utilidad) || 0}" onchange="calcularCotizacion()">
                             
                             <button type="button" onclick="removerHotel(this)">Remover</button>
@@ -849,10 +848,10 @@ function calcularPreciosRegreso() {
                     <label>Acomodación:</label>
                     <input type="text" class="tipoAcomodacion">
                     
-                    <label>Precio Neto de la Estadía en COP:</label>
+                    <label>Total de la Estadía en Neto (COP):</label>
                     <input type="number" class="precioHotelNeto" value="0" onchange="calcularCotizacion()">
                     
-                    <label>Utilidad de la Estadía en USD:</label>
+                    <label>Utilidad de la Estadía PP (COP):</label>
                     <input type="number" class="utilidadHotel" value="0" onchange="calcularCotizacion()"> 
                 </div>
             `;
@@ -1035,10 +1034,10 @@ document.addEventListener("DOMContentLoaded", function() {
                         <label>Acomodación:</label>
                         <input type="text" class="tipoAcomodacion" value="${hotel.acomodacion}">
                         
-                        <label>Precio Neto de la Estadía en COP:</label>
+                        <label>Total de la Estadía en Neto (COP):</label>
                         <input type="number" class="precioHotelNeto" value="${parseInt(hotel.precioNeto) || 0}" onchange="calcularCotizacion()">
                         
-                        <label>Utilidad de la Estadía en USD:</label>
+                        <label>Utilidad de la Estadía PP (COP):</label>
                         <input type="number" class="utilidadHotel" value="${parseInt(hotel.utilidad) || 0}" onchange="calcularCotizacion()">
                         
                         <button type="button" onclick="removerHotel(this)">Remover</button>
