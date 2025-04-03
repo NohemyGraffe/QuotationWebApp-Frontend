@@ -22,7 +22,9 @@
       transition: all 0.3s ease;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       text-decoration: none;
-      border-radius: 8px; /* Rounded edges */
+      border-radius: 8px;
+      display: block; /* Stack the buttons vertically */
+      text-align: center; /* Center the text */
     }
     .menu-button:hover {
       transform: translateY(-3px);
@@ -48,32 +50,33 @@
     /* Mobile-only optimizations */
     @media (max-width: 576px) {
       .menu-button {
-         display: block;
-         width: calc(100% - 20px);  /* full width minus side margins */
-         margin: 10px auto;         /* center the button with auto side margins */
-         padding: 10px 20px;         /* reduced padding for smaller screens */
-         font-size: 1em;             /* slightly smaller font size */
+         padding: 10px 20px;
+         font-size: 1em;
       }
       .menu-container {
-         margin-top: 50px;          /* reduce top margin on mobile */
-         padding: 0 10px;           /* add some horizontal padding */
+         margin-top: 50px;
+         padding: 0 10px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="container text-center menu-container">
-    <h1 class="mb-4">Bienvenido al sistema de gestión de datos de MultyViajes</h1>
-    <p class="mb-5">Seleccione una opción del menú:</p>
+  <div class="container menu-container">
+    <h1 class="text-center mb-4">Bienvenido al sistema de gestión de datos de MultyViajes</h1>
+    <p class="text-center mb-5">Seleccione una opción del menú:</p>
     
-    <!-- Button to create a quotation (blue) -->
-    <a href="cotizacion.html" class="menu-button btn-blue">Crear Cotización</a>
-    
-    <!-- Button to manage tours information (green) -->
-    <a href="adminTours.html" class="menu-button btn-green">Manejar Información de los Tours</a>
-    
-    <!-- Button to manage transportation information (green) -->
-    <a href="adminTransp.html" class="menu-button btn-green">Manejar Información de los Traslados</a>
+    <div class="row">
+      <!-- Left Column: Staff Options -->
+      <div class="col-md-6">
+        <a href="cotizacion.html" class="menu-button btn-blue">Crear Cotización</a>
+        <a href="https://multyviajes-vouchers.netlify.app/" class="menu-button btn-blue">Crear Voucher de Reserva</a>
+      </div>
+      <!-- Right Column: Admin Options -->
+      <div class="col-md-6 text-end">
+        <a href="adminTours.html" class="menu-button btn-green">Manejar Información de los Tours</a>
+        <a href="adminTransp.html" class="menu-button btn-green">Manejar Información de los Traslados</a>
+      </div>
+    </div>
   </div>
   
   <!-- Bootstrap Bundle with Popper -->
