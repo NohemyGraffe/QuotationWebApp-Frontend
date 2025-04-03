@@ -369,47 +369,45 @@ function getCostPerCar(pax) {
 }
 
 
-
-
 // Call this function when the page loads
 window.addEventListener('DOMContentLoaded', loadTransportationPricing);
 
 function calcularPrecios() {
   let pax = parseInt(document.getElementById("pax").value) || 0;
-  
-  // Use helper functions to get the appropriate values
+  let exchangeRate = parseFloat(document.getElementById("exchangeRate").value) || 3900;
+
   let precioPorPersona = getPricePerPerson(pax);
   let costoCarro = getCostPerCar(pax);
 
-  let totalVenta = precioPorPersona * pax;
+  let totalVenta = precioPorPersona * pax * exchangeRate; // Multiply by exchangeRate
   let totalNeto = costoCarro;
 
   document.getElementById("neto").textContent = totalNeto.toLocaleString();
   document.getElementById("venta").textContent = totalVenta.toLocaleString();
-            
+
   document.getElementById("precioTransporteNeto").value = totalNeto;
   document.getElementById("precioTransporteVenta").value = totalVenta;
-  
-  calcularCotizacion(); // if this function exists to update further calculations
+
+  calcularCotizacion();
 }
 
 function calcularPreciosRegreso() {
   let pax = parseInt(document.getElementById("paxRegreso").value) || 0;
-  
-  // Use the same helper functions for the "regreso" calculation
+  let exchangeRate = parseFloat(document.getElementById("exchangeRate").value) || 3900;
+
   let precioPorPersona = getPricePerPerson(pax);
   let costoCarro = getCostPerCar(pax);
 
-  let totalVenta = precioPorPersona * pax;
+  let totalVenta = precioPorPersona * pax * exchangeRate; // Multiply by exchangeRate
   let totalNeto = costoCarro;
 
   document.getElementById("netoRegreso").textContent = totalNeto.toLocaleString();
   document.getElementById("ventaRegreso").textContent = totalVenta.toLocaleString();
-            
+
   document.getElementById("precioTransporteNetoRegreso").value = totalNeto;
   document.getElementById("precioTransporteVentaRegreso").value = totalVenta;
-  
-  calcularCotizacion(); // update overall quotation if needed
+
+  calcularCotizacion();
 }
 
         function calcularCotizacion() {
