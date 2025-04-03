@@ -431,7 +431,7 @@ function calcularPreciosRegreso() {
 
             let totalNeto = precioHotelNeto + precioTransporteNeto + precioTransporteNetoRegreso + costosAdicionalesNeto;
             let exchangeRate = parseFloat(document.getElementById("exchangeRate").value) || 3900;
-            let totalVenta = precioHotelNeto + (utilidadHotel * exchangeRate) + precioTransporteVenta + precioTransporteVentaRegreso + costosAdicionalesNeto + costosAdicionalesUtilidad;
+            let totalVenta = precioHotelNeto + (utilidadHotel * numPersonas) + precioTransporteVenta + precioTransporteVentaRegreso + costosAdicionalesNeto + costosAdicionalesUtilidad;
 
             let tourCheckboxes = document.querySelectorAll("#tourCheckboxes input[type='checkbox']");
             let totalToursNeto = 0;
