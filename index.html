@@ -12,32 +12,48 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .menu-container {
-      margin-top: 100px;
+      margin-top: 50px;
+      margin-bottom: 50px;
+    }
+    .hero-title {
+      font-size: 2.5em;
+      font-weight: bold;
+      color: #0056b3;
+    }
+    .hero-subtitle {
+      font-size: 1.2em;
+      color: #333;
+    }
+    .card-deck {
+      margin-top: 30px;
+    }
+    .card-title {
+      color: #0056b3;
+      font-weight: bold;
     }
     .menu-button {
-      margin: 10px;
-      padding: 20px 40px;
-      font-size: 1.25em;
+      margin: 5px;
+      padding: 12px 25px;
+      font-size: 1em;
       border: none;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       text-decoration: none;
       border-radius: 8px;
-      display: block; /* Stack the buttons vertically */
-      text-align: center; /* Center the text */
+      display: block;
+      text-align: center;
     }
     .menu-button:hover {
       transform: translateY(-3px);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     }
-    /* Custom button styles */
+    /* Button color styles */
     .btn-blue {
       background-color: #007bff;
       color: #fff;
     }
     .btn-blue:hover {
       background-color: #0069d9;
-      color: #fff;
     }
     .btn-green {
       background-color: #28a745;
@@ -45,36 +61,66 @@
     }
     .btn-green:hover {
       background-color: #218838;
-      color: #fff;
-    }
-    /* Mobile-only optimizations */
-    @media (max-width: 576px) {
-      .menu-button {
-         padding: 10px 20px;
-         font-size: 1em;
-      }
-      .menu-container {
-         margin-top: 50px;
-         padding: 0 10px;
-      }
     }
   </style>
 </head>
 <body>
   <div class="container menu-container">
-    <h1 class="text-center mb-4">Bienvenido al sistema de gestión de datos de MultyViajes</h1>
-    <p class="text-center mb-5">Seleccione una opción del menú:</p>
+    <!-- Hero Section -->
+    <div class="text-center">
+      <h1 class="hero-title mb-3">Bienvenido al sistema de gestión de datos de MultyViajes</h1>
+      <p class="hero-subtitle mb-4">Seleccione una opción del menú</p>
+      <!-- Voucher Button: centered below headline -->
+      <a href="https://multyviajes-vouchers.netlify.app/" class="menu-button btn-blue w-50 mx-auto">Crear Voucher de Reserva</a>
+    </div>
+
+    <!-- Tourist Packages Section -->
+    <h2 class="text-center text-primary my-4">Paquetes Turísticos</h2>
     
-    <div class="row">
-      <!-- Left Column: Staff Options -->
-      <div class="col-md-6">
-        <a href="cotizacion.html" class="menu-button btn-blue">Crear Cotización - Medellín</a>
-        <a href="https://multyviajes-vouchers.netlify.app/" class="menu-button btn-blue">Crear Voucher de Reserva</a>
+    <div class="row card-deck">
+      <!-- Card for Medellín y Guatapé -->
+      <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h3 class="card-title">Medellín y Guatapé</h3>
+            <a href="cotizacion.html" class="menu-button btn-blue">Crear Cotización</a>
+            <a href="adminTours.html" class="menu-button btn-green">Manejar Información de los Tours</a>
+            <a href="adminTransp.html" class="menu-button btn-green">Manejar Información de los Traslados</a>
+          </div>
+        </div>
       </div>
-      <!-- Right Column: Admin Options -->
-      <div class="col-md-6 text-end">
-        <a href="adminTours.html" class="menu-button btn-green">Manejar Información de los Tours</a>
-        <a href="adminTransp.html" class="menu-button btn-green">Manejar Información de los Traslados</a>
+      <!-- Card for Cartagena -->
+      <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h3 class="card-title">Cartagena</h3>
+            <a href="cotizacion.html" class="menu-button btn-blue">Crear Cotización</a>
+            <a href="adminTours.html" class="menu-button btn-green">Manejar Información de los Tours</a>
+            <a href="adminTransp.html" class="menu-button btn-green">Manejar Información de los Traslados</a>
+          </div>
+        </div>
+      </div>
+      <!-- Card for Bogotá -->
+      <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h3 class="card-title">Bogotá</h3>
+            <a href="cotizacion.html" class="menu-button btn-blue">Crear Cotización</a>
+            <a href="adminTours.html" class="menu-button btn-green">Manejar Información de los Tours</a>
+            <a href="adminTransp.html" class="menu-button btn-green">Manejar Información de los Traslados</a>
+          </div>
+        </div>
+      </div>
+      <!-- Card for Eje Cafetero -->
+      <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h3 class="card-title">Eje Cafetero</h3>
+            <a href="cotizacion.html" class="menu-button btn-blue">Crear Cotización</a>
+            <a href="adminTours.html" class="menu-button btn-green">Manejar Información de los Tours</a>
+            <a href="adminTransp.html" class="menu-button btn-green">Manejar Información de los Traslados</a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
