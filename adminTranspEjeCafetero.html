@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Manejar Precio de los Traslados de Eje Cafetero</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS via CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .table-actions button {
+      margin-right: 5px;
+    }
+    table {
+      border-color: #8c8c8c !important;
+    }
+    input.form-control {
+      border-color: #8c8c8c !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-5">
+    <h1>Manejar Precio de los Traslados de de Eje Cafetero</h1>
+    
+    <!-- Notification area -->
+    <div id="notification"></div>
+    
+    <!-- Section to display current data in tables only -->
+    <h2>Precio por pax</h2>
+    <table class="table table-bordered" id="sale-table">
+      <thead>
+        <tr>
+          <th>Min Pax</th>
+          <th>Max Pax</th>
+          <th>Precio pax (USD)</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Sale rules will be injected here -->
+      </tbody>
+    </table>
+    <h3>Agregar pax</h3>
+    <form id="sale-rule-form" class="mb-5">
+      <div class="mb-3">
+        <label for="sale-minPax" class="form-label">Min pasajeros</label>
+        <input type="number" class="form-control" id="sale-minPax" required>
+      </div>
+      <div class="mb-3">
+        <label for="sale-maxPax" class="form-label">Max pasajeros</label>
+        <input type="number" class="form-control" id="sale-maxPax" required>
+      </div>
+      <div class="mb-3">
+        <label for="sale-priceEach" class="form-label">Precio pax (USD)</label>
+        <input type="number" class="form-control" id="sale-priceEach" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Agregar</button>
+    </form>
+    
+    <!-- Section to manage "Cost by Car" rules -->
+    <h2>Costo por carro</h2>
+    <table class="table table-bordered" id="cost-table">
+      <thead>
+        <tr>
+          <th>Min Pax</th>
+          <th>Max Pax</th>
+          <th>Precio por carro (COP)</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Cost rules will be injected here -->
+      </tbody>
+    </table>
+    <h3>Agregar costo por carro</h3>
+    <form id="cost-rule-form" class="mb-5">
+      <div class="mb-3">
+        <label for="cost-minPax" class="form-label">Min pasajeros</label>
+        <input type="number" class="form-control" id="cost-minPax" required>
+      </div>
+      <div class="mb-3">
+        <label for="cost-maxPax" class="form-label">Max pasajeros</label>
+        <input type="number" class="form-control" id="cost-maxPax" required>
+      </div>
+      <div class="mb-3">
+        <label for="cost-priceCar" class="form-label">Precio por carro (COP)</label>
+        <input type="number" class="form-control" id="cost-priceCar" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Agregar</button>
+    </form>
+    
+  </div>
+  
+  <!-- Bootstrap Bundle with Popper for interactive components -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Custom JavaScript for handling form actions and notifications -->
+  <script>
+    const API_URL = "https://multyviajes-backend.onrender.com/api/transportation"; // Adjust if needed
+    let currentData = null; // to hold the fetched document
+
+    // Function to display notifications using Bootstrap alerts
+    function showNotification(message, type = 'success') {
+      const notificationDiv = document.getElementById('notification');
+      notificationDiv.innerHTML = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      `;
+    }
+
+    // Function to fetch the current transportation pricing document from the API
+    async function loadData() {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error("Failed to fetch data");
+        currentData = await response.json();
+        renderData();
+      } catch (error) {
+        showNotification("Error fetching data: " + error.message, "danger");
+      }
+    }
+
+    // Function to render the data in the UI (tables only)
+    function renderData() {
+      // Render saleByPerson table
+      const saleTbody = document.getElementById("sale-table").querySelector("tbody");
+      saleTbody.innerHTML = "";
+      currentData.saleByPerson.forEach((rule, index) => {
+        saleTbody.innerHTML += `
+          <tr data-index="${index}">
+            <td>${rule.minPax}</td>
+            <td>${rule.maxPax}</td>
+            <td>${rule.priceEach}</td>
+            <td class="table-actions">
+              <button class="btn btn-warning btn-sm" onclick="deleteSaleRule(${index})">Eliminar</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      // Render costByCar table
+      const costTbody = document.getElementById("cost-table").querySelector("tbody");
+      costTbody.innerHTML = "";
+      currentData.costByCar.forEach((rule, index) => {
+        costTbody.innerHTML += `
+          <tr data-index="${index}">
+            <td>${rule.minPax}</td>
+            <td>${rule.maxPax}</td>
+            <td>${rule.priceCar}</td>
+            <td class="table-actions">
+              <button class="btn btn-warning btn-sm" onclick="deleteCostRule(${index})">Eliminar</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    // Function to update the entire document via PUT request
+    async function updateData() {
+      try {
+        const response = await fetch(API_URL + "/" + currentData._id, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(currentData)
+        });
+        if (!response.ok) throw new Error("Update failed");
+        currentData = await response.json();
+        showNotification("Datos actualizados exitosamente!", "success");
+        renderData();
+      } catch (error) {
+        showNotification("Error updating data: " + error.message, "danger");
+      }
+    }
+
+    // Event listener for the sale rule form
+    document.getElementById("sale-rule-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const minPax = parseInt(document.getElementById("sale-minPax").value);
+      const maxPax = parseInt(document.getElementById("sale-maxPax").value);
+      const priceEach = parseInt(document.getElementById("sale-priceEach").value);
+
+      if (minPax > maxPax) {
+        showNotification("El mínimo de pasajeros no puede exceder el máximo de pasajeros.", "danger");
+        return;
+      }
+      // Append new sale rule to the array
+      currentData.saleByPerson.push({ minPax, maxPax, priceEach });
+      updateData();
+      e.target.reset();
+    });
+
+    // Event listener for the cost rule form
+    document.getElementById("cost-rule-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const minPax = parseInt(document.getElementById("cost-minPax").value);
+      const maxPax = parseInt(document.getElementById("cost-maxPax").value);
+      const priceCar = parseInt(document.getElementById("cost-priceCar").value);
+
+      if (minPax > maxPax) {
+        showNotification("El mínimo de pasajeros no puede exceder el máximo de pasajeros.", "danger");
+        return;
+      }
+      // Append new cost rule to the array
+      currentData.costByCar.push({ minPax, maxPax, priceCar });
+      updateData();
+      e.target.reset();
+    });
+
+    // Functions to delete a rule from the arrays
+    function deleteSaleRule(index) {
+      if (confirm("Estás seguro de querer eliminar esto?")) {
+        currentData.saleByPerson.splice(index, 1);
+        updateData();
+      }
+    }
+
+    function deleteCostRule(index) {
+      if (confirm("Estás seguro de querer eliminar esto?")) {
+        currentData.costByCar.splice(index, 1);
+        updateData();
+      }
+    }
+
+    // Initial load
+    loadData();
+  </script>
+</body>
+</html>
