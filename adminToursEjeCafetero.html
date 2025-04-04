@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Manejar información de los tours del Eje Cafetero</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS via CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .table-actions button {
+      margin-right: 5px;
+    }
+    table.table-bordered th, table.table-bordered td {
+      border: 1px solid #8c8c8c; /* Lighter gray for table gridlines */
+    }
+    input.form-control {
+      border: 1px solid #8c8c8c; /* Lighter gray for input field borders */
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-5">
+    <h1>Manejar información de los tours del Eje Cafetero</h1>
+    
+    <!-- Notification area -->
+    <div id="notification"></div>
+    
+    <!-- Table to display current tours -->
+    
+    <table class="table table-bordered" id="tours-table">
+      <thead>
+        <tr>
+          <th>Nombre del tour</th>
+          <th>Precio interno (COP)</th>
+          <th>Precio de venta (USD)</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Tours will be dynamically injected here -->
+      </tbody>
+    </table>
+    
+    <!-- Form for adding a new tour -->
+    <h3>Agregar tour nuevo</h3>
+    <form id="tour-form" class="mb-5">
+      <div class="mb-3">
+        <label for="tour-name" class="form-label">Nombre del Tour</label>
+        <input type="text" class="form-control" id="tour-name" required>
+      </div>
+      <div class="mb-3">
+        <label for="internoCop" class="form-label">Precio interno (COP)</label>
+        <input type="number" class="form-control" id="internoCop" required>
+      </div>
+      <div class="mb-3">
+        <label for="ventaUsd" class="form-label">Precio de venta (USD)</label>
+        <input type="number" class="form-control" id="ventaUsd" step="0.01" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Agregar</button>
+    </form>
+  </div>
+  
+  <!-- Bootstrap Bundle with Popper for interactive components -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Custom JavaScript for Tours CRUD operations -->
+  <script>
+    const API_URL = "https://multyviajes-backend.onrender.com/api/tours"; // Adjust as needed
+    let toursData = []; // Array to hold the fetched tours
+
+    // Function to display notifications using Bootstrap alerts
+    function showNotification(message, type = 'success') {
+      const notificationDiv = document.getElementById('notification');
+      notificationDiv.innerHTML = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+          ${message}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      `;
+    }
+
+    // Function to fetch the current tours from the API
+    async function loadTours() {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error("No se pudieron obtener los datos");
+        toursData = await response.json();
+        renderTours();
+      } catch (error) {
+        showNotification("Error obteniendo al obtener los datos: " + error.message, "danger");
+      }
+    }
+
+    // Function to render the tours data into the table
+    function renderTours() {
+      const tbody = document.getElementById("tours-table").querySelector("tbody");
+      tbody.innerHTML = "";
+      toursData.forEach((tour, index) => {
+        tbody.innerHTML += `
+          <tr data-index="${index}">
+            <td>${tour.name}</td>
+            <td>${tour.internoCop}</td>
+            <td>${tour.ventaUsd}</td>
+            <td class="table-actions">
+              <!-- Removed Edit button as requested -->
+              <button class="btn btn-danger btn-sm" onclick="deleteTour('${tour._id}', ${index})">Eliminar</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    // Function to add a new tour via a POST request
+    async function addTour(tour) {
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(tour)
+        });
+        if (!response.ok) throw new Error("Add tour failed");
+        showNotification("Tour agregado exitosamente!", "success");
+        loadTours();
+      } catch (error) {
+        showNotification("Error agregando tour: " + error.message, "danger");
+      }
+    }
+
+    // Function to delete a tour via a DELETE request
+    async function deleteTour(id, index) {
+      if (!confirm("Eliminar este tour?")) return;
+      try {
+        const response = await fetch(API_URL + "/" + id, {
+          method: "DELETE"
+        });
+        if (!response.ok) throw new Error("Delete failed");
+        showNotification("Tour eliminado exitosamente!", "success");
+        loadTours();
+      } catch (error) {
+        showNotification("Error al eliminar tour: " + error.message, "danger");
+      }
+    }
+
+    // Event listener for adding a new tour
+    document.getElementById("tour-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const name = document.getElementById("tour-name").value.trim();
+      const internoCop = parseInt(document.getElementById("internoCop").value);
+      const ventaUsd = parseFloat(document.getElementById("ventaUsd").value);
+
+      if (!name || isNaN(internoCop) || isNaN(ventaUsd)) {
+        showNotification("Please fill in all fields correctly.", "danger");
+        return;
+      }
+
+      const newTour = { name, internoCop, ventaUsd };
+      addTour(newTour);
+      e.target.reset();
+    });
