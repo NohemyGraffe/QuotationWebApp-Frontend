@@ -541,8 +541,8 @@ function calcularPreciosRegreso() {
 
                 if (fecha || actividad) { // Only display rows that have data
                     let itinerarioInfo = document.createElement('p');
-                    itinerarioInfo.innerHTML = `<strong>Fecha:</strong> <span>${fecha || 'N/A'}</span><br>
-                                                <strong>Actividad:</strong> <span>${actividad || 'N/A'}</span>`;
+                    itinerarioInfo.innerHTML = `<strong></strong> <span>${fecha || 'N/A'}</span>
+                                                <strong></strong> <span>${actividad || 'N/A'}</span>`;
             resumenItinerario.appendChild(itinerarioInfo);
         }
     });
