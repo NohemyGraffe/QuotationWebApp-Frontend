@@ -1121,41 +1121,34 @@ let allTours = [];
 // Define a Helper Function to Compute Tour Costs
 
 function computeTourCosts(tour, numPersonas, exchangeRate) {
-    // Base net cost: the tour's internal price multiplied by the number of persons (in COP)
-    const baseNetTour = tour.internoCop * numPersonas;
+  const baseNetTour = tour.internoCop * numPersonas;
 
-    // Find the appropriate car cost from the "costoPorCarro" array (assumed stored in COP)
-    let netTransportCop = 0;
-    if (tour.costoPorCarro && tour.costoPorCarro.length > 0) {
-       tour.costoPorCarro.forEach(rule => {
-         if (numPersonas >= rule.minPax && numPersonas <= rule.maxPax) {
-             netTransportCop = rule.priceCar; // in COP
-         }
-       });
-    }
-    const totalNetTour = baseNetTour + netTransportCop;
+  let netTransportCop = 0;
+  if (tour.costoPorCarro && tour.costoPorCarro.length > 0) {
+    tour.costoPorCarro.forEach(rule => {
+      if (numPersonas >= rule.minPax && numPersonas <= rule.maxPax) {
+        netTransportCop = rule.priceCar;
+      }
+    });
+  }
+  const totalNetTour = baseNetTour + netTransportCop;
 
-    // Base sale cost: tour.sale price multiplied by exchange rate and number of persons
-    const baseSaleTour = (tour.ventaUsd * exchangeRate) * numPersonas;
+  const baseSaleTour = (tour.ventaUsd * exchangeRate) * numPersonas;
 
-    // Find the per-person transport price from "precioPorPax" (assumed stored in USD)
-    let transportSaleUsd = 0;
-    if (tour.precioPorPax && tour.precioPorPax.length > 0) {
-       tour.precioPorPax.forEach(rule => {
-         if (numPersonas >= rule.minPax && numPersonas <= rule.maxPax) {
-             transportSaleUsd = rule.pricePax; // in USD per person
-         }
-       });
-    }
-    // Convert to COP and multiply by number of persons
-    const saleTransportCop = (transportSaleUsd * exchangeRate) * numPersonas;
-    const totalSaleTour = baseSaleTour + saleTransportCop;
+  let transportSaleUsd = 0;
+  if (tour.precioPorPax && tour.precioPorPax.length > 0) {
+    tour.precioPorPax.forEach(rule => {
+      if (numPersonas >= rule.minPax && numPersonas <= rule.maxPax) {
+        transportSaleUsd = rule.pricePax;
+      }
+    });
+  }
+  const saleTransportCop = (transportSaleUsd * exchangeRate) * numPersonas;
+  const totalSaleTour = baseSaleTour + saleTransportCop;
 
-    return {
-      totalNetTour,    // in COP
-      totalSaleTour    // in COP
-    };
+  return { totalNetTour, totalSaleTour };
 }
+
 
     
   </script>
