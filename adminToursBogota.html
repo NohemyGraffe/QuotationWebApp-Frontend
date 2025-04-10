@@ -2,164 +2,350 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin - Manejar información de los tours de Bogotá</title>
+  <title>Admin - Manejar Tours y sus Traslados</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Bootstrap CSS via CDN -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
   <style>
     .table-actions button {
       margin-right: 5px;
     }
-    table.table-bordered th, table.table-bordered td {
-      border: 1px solid #8c8c8c; /* Lighter gray for table gridlines */
+    table.table-bordered th,
+    table.table-bordered td {
+      border: 1px solid #8c8c8c; /* light gray borders */
     }
     input.form-control {
-      border: 1px solid #8c8c8c; /* Lighter gray for input field borders */
+      border: 1px solid #8c8c8c; /* input border color */
+    }
+    .subtable-container {
+      margin-left: 2rem; /* indent sub-tables */
+      margin-bottom: 1rem;
+    }
+    .subtable-title {
+      margin-top: 1rem;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+    hr {
+      border-color: #ccc;
+      margin: 2rem 0;
+    }
+    .accordion-button {
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+    .accordion-body {
+      padding: 1rem;
     }
   </style>
 </head>
 <body>
-  <div class="container mt-5">
-    <h1>Manejar información de los tours de Bogotá</h1>
-    
-    <!-- Notification area -->
-    <div id="notification"></div>
-    
-    <!-- Table to display current tours -->
-    
-    <table class="table table-bordered" id="tours-table">
-      <thead>
-        <tr>
-          <th>Nombre del tour</th>
-          <th>Precio interno (COP)</th>
-          <th>Precio de venta (USD)</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Tours will be dynamically injected here -->
-      </tbody>
-    </table>
-    
-    <!-- Form for adding a new tour -->
-    <h3>Agregar tour nuevo</h3>
-    <form id="tour-form" class="mb-5">
-      <div class="mb-3">
-        <label for="tour-name" class="form-label">Nombre del Tour</label>
-        <input type="text" class="form-control" id="tour-name" required>
-      </div>
-      <div class="mb-3">
-        <label for="internoCop" class="form-label">Precio interno (COP)</label>
-        <input type="number" class="form-control" id="internoCop" required>
-      </div>
-      <div class="mb-3">
-        <label for="ventaUsd" class="form-label">Precio de venta (USD)</label>
-        <input type="number" class="form-control" id="ventaUsd" step="0.01" required>
-      </div>
-      <button type="submit" class="btn btn-primary">Agregar</button>
-    </form>
-  </div>
-  
-  <!-- Bootstrap Bundle with Popper for interactive components -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  
-  <!-- Custom JavaScript for Tours CRUD operations -->
-  <script>
-    const API_URL = "https://multyviajes-backend.onrender.com/api/toursbogota"; // Adjust as needed
-    let toursData = []; // Array to hold the fetched tours
+<div class="container mt-4 mb-5">
+  <h1 class="mb-4">Manejar Tours y sus Traslados</h1>
 
-    // Function to display notifications using Bootstrap alerts
-    function showNotification(message, type = 'success') {
-      const notificationDiv = document.getElementById('notification');
-      notificationDiv.innerHTML = `
-        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-          ${message}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  <!-- Notification area (Bootstrap alerts) -->
+  <div id="notification"></div>
+
+  <!-- 
+    This section will list all existing tours and their 
+    transportation pricing rules (in memory for now).
+  -->
+  <div id="tours-container" class="accordion" id="toursAccordion"></div>
+
+  <hr/>
+
+  <!-- Form to add a brand-new tour (with base info) -->
+  <h3>Agregar Nuevo Tour</h3>
+  <form id="new-tour-form" class="mb-4">
+    <div class="mb-3">
+      <label for="tour-name" class="form-label">Nombre del Tour</label>
+      <input type="text" class="form-control" id="tour-name" required />
+    </div>
+    <div class="mb-3">
+      <label for="internoCop" class="form-label">Precio interno (COP)</label>
+      <input type="number" class="form-control" id="internoCop" required />
+    </div>
+    <div class="mb-3">
+      <label for="ventaUsd" class="form-label">Precio de venta (USD)</label>
+      <input type="number" step="0.01" class="form-control" id="ventaUsd" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Agregar nuevo tour</button>
+  </form>
+</div>
+
+<!-- Bootstrap Bundle with Popper (for interactive components) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  /*************************************************
+   * Front-End Only: Simulated Data & In-Memory CRUD
+   *************************************************/
+  
+  // We'll store all tours in this array for now.
+  // Later, you'll replace these with API calls to load/save data.
+  let toursData = [];
+
+  // A quick utility to show Bootstrap alerts
+  function showNotification(message, type = "success") {
+    const notificationDiv = document.getElementById("notification");
+    notificationDiv.innerHTML = `
+      <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    `;
+  }
+
+  // Renders the entire list of tours
+  function renderTours(openTourId = null) {
+    const container = document.getElementById("tours-container");
+    container.innerHTML = ""; // Clear existing tours
+
+    toursData.forEach((tour) => {
+      const tourId = `tour-${tour.id}`;
+      const isOpen = openTourId === tour.id ? "show" : "";
+      const isExpanded = openTourId === tour.id ? "true" : "false";
+      const tourHtml = `
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="heading-${tourId}">
+            <button class="accordion-button ${isOpen ? "" : "collapsed"}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${tourId}" aria-expanded="${isExpanded}" aria-controls="collapse-${tourId}">
+              ${tour.name}
+            </button>
+          </h2>
+          <div id="collapse-${tourId}" class="accordion-collapse collapse ${isOpen}" aria-labelledby="heading-${tourId}" data-bs-parent="#toursAccordion">
+            <div class="accordion-body">
+              <p>
+                <strong>Precio interno (COP):</strong> ${Number(tour.internoCop).toLocaleString()}<br/>
+                <strong>Precio de venta (USD):</strong> ${Number(tour.ventaUsd).toLocaleString()}
+              </p>
+              <button class="btn btn-danger btn-sm mb-3" onclick="deleteTour('${tour.id}')">
+                Eliminar este tour
+              </button>
+
+              <!-- Precio por pax (COP) -->
+              <div class="subtable-container">
+                <div class="subtable-title">Precio por pax (COP)</div>
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th>Min Pax</th>
+                      <th>Max Pax</th>
+                      <th>Price per pax (COP)</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="precioPax-body-${tour.id}">
+                    ${tour.precioPorPax.map((rule, index) => `
+                      <tr>
+                        <td>${rule.minPax}</td>
+                        <td>${rule.maxPax}</td>
+                        <td>${Number(rule.pricePax).toLocaleString()}</td>
+                        <td>
+                          <button class="btn btn-danger btn-sm" onclick="deletePrecioPax('${tour.id}', ${index})">
+                            Eliminar
+                          </button>
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+                <form class="row gy-2 gx-3 align-items-center" onsubmit="addPrecioPax(event, '${tour.id}')">
+                  <div class="col-auto">
+                    <label>Min Pax</label>
+                    <input type="number" class="form-control" name="minPax" required />
+                  </div>
+                  <div class="col-auto">
+                    <label>Max Pax</label>
+                    <input type="number" class="form-control" name="maxPax" required />
+                  </div>
+                  <div class="col-auto">
+                    <label>Price per pax (COP)</label>
+                    <input type="number" class="form-control" name="pricePax" required />
+                  </div>
+                  <div class="col-auto pt-4">
+                    <button type="submit" class="btn btn-primary btn-sm">Agregar pax</button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Costo por carro (USD) -->
+              <div class="subtable-container">
+                <div class="subtable-title">Costo por carro (USD)</div>
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th>Min Pax</th>
+                      <th>Max Pax</th>
+                      <th>Costo del carro (USD)</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="costoCarro-body-${tour.id}">
+                    ${tour.costoPorCarro.map((rule, index) => `
+                      <tr>
+                        <td>${rule.minPax}</td>
+                        <td>${rule.maxPax}</td>
+                        <td>${Number(rule.priceCar).toLocaleString()}</td>
+                        <td>
+                          <button class="btn btn-danger btn-sm" onclick="deleteCostoCarro('${tour.id}', ${index})">
+                            Eliminar
+                          </button>
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+                <form class="row gy-2 gx-3 align-items-center" onsubmit="addCostoCarro(event, '${tour.id}')">
+                  <div class="col-auto">
+                    <label>Min Pax</label>
+                    <input type="number" class="form-control" name="minPax" required />
+                  </div>
+                  <div class="col-auto">
+                    <label>Max Pax</label>
+                    <input type="number" class="form-control" name="maxPax" required />
+                  </div>
+                  <div class="col-auto">
+                    <label>Costo del carro (USD)</label>
+                    <input type="number" step="0.01" class="form-control" name="priceCar" required />
+                  </div>
+                  <div class="col-auto pt-4">
+                    <button type="submit" class="btn btn-primary btn-sm">Agregar costo</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
         </div>
       `;
-    }
-
-    // Function to fetch the current tours from the API
-    async function loadTours() {
-      try {
-        const response = await fetch(API_URL);
-        if (!response.ok) throw new Error("No se pudieron obtener los datos");
-        toursData = await response.json();
-        renderTours();
-      } catch (error) {
-        showNotification("Error obteniendo al obtener los datos: " + error.message, "danger");
-      }
-    }
-
-    // Function to render the tours data into the table
-    function renderTours() {
-      const tbody = document.getElementById("tours-table").querySelector("tbody");
-      tbody.innerHTML = "";
-      toursData.forEach((tour, index) => {
-        tbody.innerHTML += `
-          <tr data-index="${index}">
-            <td>${tour.name}</td>
-            <td>${tour.internoCop}</td>
-            <td>${tour.ventaUsd}</td>
-            <td class="table-actions">
-              <!-- Removed Edit button as requested -->
-              <button class="btn btn-danger btn-sm" onclick="deleteTour('${tour._id}', ${index})">Eliminar</button>
-            </td>
-          </tr>
-        `;
-      });
-    }
-
-    // Function to add a new tour via a POST request
-    async function addTour(tour) {
-      try {
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(tour)
-        });
-        if (!response.ok) throw new Error("Add tour failed");
-        showNotification("Tour agregado exitosamente!", "success");
-        loadTours();
-      } catch (error) {
-        showNotification("Error agregando tour: " + error.message, "danger");
-      }
-    }
-
-    // Function to delete a tour via a DELETE request
-    async function deleteTour(id, index) {
-      if (!confirm("Eliminar este tour?")) return;
-      try {
-        const response = await fetch(API_URL + "/" + id, {
-          method: "DELETE"
-        });
-        if (!response.ok) throw new Error("Delete failed");
-        showNotification("Tour eliminado exitosamente!", "success");
-        loadTours();
-      } catch (error) {
-        showNotification("Error al eliminar tour: " + error.message, "danger");
-      }
-    }
-
-    // Event listener for adding a new tour
-    document.getElementById("tour-form").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const name = document.getElementById("tour-name").value.trim();
-      const internoCop = parseInt(document.getElementById("internoCop").value);
-      const ventaUsd = parseFloat(document.getElementById("ventaUsd").value);
-
-      if (!name || isNaN(internoCop) || isNaN(ventaUsd)) {
-        showNotification("Please fill in all fields correctly.", "danger");
-        return;
-      }
-
-      const newTour = { name, internoCop, ventaUsd };
-      addTour(newTour);
-      e.target.reset();
+      container.innerHTML += tourHtml;
     });
-    
-     // Initial load of tours data when the page loads
-    loadTours();
-  </script>
+  }
+
+  /*************************************************
+   * FRONT-END CRUD-Like Functions (No Real Backend)
+   *************************************************/
+
+  // 1) Add a New Tour
+  document.getElementById("new-tour-form").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const name = document.getElementById("tour-name").value.trim();
+    const internoCop = parseInt(document.getElementById("internoCop").value) || 0;
+    const ventaUsd = parseFloat(document.getElementById("ventaUsd").value) || 0;
+
+    if (!name) {
+      showNotification("Por favor, introduce el nombre del tour.", "danger");
+      return;
+    }
+
+    // Simulate an ID
+    const newTour = {
+      id: Date.now().toString(), // unique-ish ID
+      name,
+      internoCop,
+      ventaUsd,
+      // Initialize empty arrays
+      precioPorPax: [],
+      costoPorCarro: []
+    };
+
+    toursData.push(newTour);
+    showNotification("¡Tour agregado exitosamente!");
+    e.target.reset(); // clear form
+    renderTours();
+  });
+
+  // 2) Delete Entire Tour
+  function deleteTour(tourId) {
+    if (!confirm("¿Eliminar este tour por completo?")) return;
+    toursData = toursData.filter(t => t.id !== tourId);
+    showNotification("Tour eliminado exitosamente");
+    renderTours();
+  }
+
+  // 3) Add Precio por Pax (COP)
+  function addPrecioPax(event, tourId) {
+    event.preventDefault();
+    const form = event.target;
+    const minPax = parseInt(form.minPax.value) || 0;
+    const maxPax = parseInt(form.maxPax.value) || 0;
+    const pricePax = parseInt(form.pricePax.value) || 0; // in COP
+
+    if (minPax > maxPax) {
+      showNotification("El mínimo de pax no puede superar el máximo.", "danger");
+      return;
+    }
+
+    const tour = toursData.find(t => t.id === tourId);
+    if (!tour) {
+      showNotification("Tour no encontrado.", "danger");
+      return;
+    }
+
+    // Add new rule
+    tour.precioPorPax.push({ minPax, maxPax, pricePax });
+    showNotification("Nueva regla de 'precio por pax' agregada.");
+    form.reset();
+    renderTours(tourId); // Keep the current tour open
+  }
+
+  // 4) Delete a Precio por Pax rule
+  function deletePrecioPax(tourId, index) {
+    if (!confirm("¿Eliminar esta regla de precio por pax?")) return;
+    const tour = toursData.find(t => t.id === tourId);
+    if (!tour) {
+      showNotification("Tour no encontrado.", "danger");
+      return;
+    }
+    tour.precioPorPax.splice(index, 1);
+    showNotification("Regla eliminada.");
+    renderTours();
+  }
+
+  // 5) Add Costo por Carro (USD)
+  function addCostoCarro(event, tourId) {
+    event.preventDefault();
+    const form = event.target;
+    const minPax = parseInt(form.minPax.value) || 0;
+    const maxPax = parseInt(form.maxPax.value) || 0;
+    const priceCar = parseFloat(form.priceCar.value) || 0; // in USD
+
+    if (minPax > maxPax) {
+      showNotification("El mínimo de pax no puede superar el máximo.", "danger");
+      return;
+    }
+
+    const tour = toursData.find(t => t.id === tourId);
+    if (!tour) {
+      showNotification("Tour no encontrado.", "danger");
+      return;
+    }
+
+    // Add new rule
+    tour.costoPorCarro.push({ minPax, maxPax, priceCar });
+    showNotification("Nueva regla de 'costo por carro' agregada.");
+    form.reset();
+    renderTours(tourId); // Keep the current tour open
+  }
+
+  // 6) Delete a Costo por Carro rule
+  function deleteCostoCarro(tourId, index) {
+    if (!confirm("¿Eliminar esta regla de costo por carro?")) return;
+    const tour = toursData.find(t => t.id === tourId);
+    if (!tour) {
+      showNotification("Tour no encontrado.", "danger");
+      return;
+    }
+    tour.costoPorCarro.splice(index, 1);
+    showNotification("Regla eliminada.");
+    renderTours();
+  }
+
+  // Initial render with no data
+  renderTours();
+</script>
 </body>
 </html>
+
