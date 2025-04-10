@@ -431,19 +431,31 @@ function calcularPreciosRegreso() {
             let exchangeRate = parseFloat(document.getElementById("exchangeRate").value) || 3900;
             let totalVenta = precioHotelNeto + (utilidadHotel * numPersonas) + precioTransporteVenta + precioTransporteVentaRegreso + costosAdicionalesNeto + costosAdicionalesUtilidad;
 
-            let tourCheckboxes = document.querySelectorAll("#tourCheckboxes input[type='checkbox']");
-            let totalToursNeto = 0;
-            let totalToursVenta = 0;
-            tourCheckboxes.forEach(checkbox => {
-                if (checkbox.checked) {
-                    let [neto, venta] = checkbox.value.split('-').map(Number);
-                    totalToursNeto += neto * numPersonas;
-                    totalToursVenta += (venta * exchangeRate) * numPersonas; // Convert to COP before summing
-                }
-            });
 
-            totalNeto += totalToursNeto;
-            totalVenta += totalToursVenta;
+            
+// Ensure that "allTours" holds your fetched tours and numPersonas, exchangeRate are already defined.
+let tourCheckboxes = document.querySelectorAll("#tourCheckboxes input[type='checkbox']");
+let totalToursNeto = 0;
+let totalToursVenta = 0;
+
+tourCheckboxes.forEach(checkbox => {
+    if (checkbox.checked) {
+        // Look up the tour object by its _id (checkbox.value holds the tour's _id now)
+        let tour = allTours.find(t => t._id === checkbox.value);
+        if (tour) {
+            // Compute the totals for this tour using a helper function
+            let costs = computeTourCosts(tour, numPersonas, exchangeRate);
+            totalToursNeto += costs.totalNetTour;
+            totalToursVenta += costs.totalSaleTour;
+        }
+    }
+});
+
+totalNeto += totalToursNeto;
+totalVenta += totalToursVenta;
+
+
+
 
             let totalPpNeto = Math.floor((precioHotelNeto + precioTransporteNeto + precioTransporteNetoRegreso + totalToursNeto + costosAdicionalesNeto) / numPersonas);
             let totalPpVenta = Math.floor(totalVenta / numPersonas);
@@ -1077,33 +1089,79 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 <script>
-    async function loadToursForQuotation() {
-      try {
-        const response = await fetch('https://multyviajes-backend.onrender.com/api/toursbogota');
-        if (!response.ok) throw new Error('Error fetching tours data');
-        const tours = await response.json();
-        
-        // Find the container where the checkboxes should appear
-        const tourCheckboxesContainer = document.getElementById('tourCheckboxes');
-        tourCheckboxesContainer.innerHTML = ''; // Clear any existing content
-        
-        // Loop through the tours array and create checkbox inputs dynamically
-        tours.forEach(tour => {
-          const label = document.createElement('label');
-          // Here we use the internoCop and ventaUsd values to build the checkbox value.
-          // Adjust the format if needed.
-          label.innerHTML = `<input type="checkbox" value="${tour.internoCop}-${tour.ventaUsd}" onchange="calcularCotizacion()"> ${tour.name} (Interno: COP ${tour.internoCop.toLocaleString()} / Venta: USD ${tour.ventaUsd})`;
-          tourCheckboxesContainer.appendChild(label);
-        });
-      } catch (error) {
-        console.error("Error loading tours for quotation:", error);
-      }
-    }
-  
+async function loadToursForQuotation() {
+  try {
+    const response = await fetch('https://multyviajes-backend.onrender.com/api/toursbogota');
+    if (!response.ok) throw new Error('Error fetching tours data');
+    const tours = await response.json();
+
+    // **IMPORTANT:** Store fetched tours globally for later lookup
+    allTours = tours;
+
+    const tourCheckboxesContainer = document.getElementById('tourCheckboxes');
+    tourCheckboxesContainer.innerHTML = ''; // Clear any existing content
+
+    // Create a checkbox for each tour with its _id as value
+    tours.forEach(tour => {
+      const label = document.createElement('label');
+      label.innerHTML = `<input type="checkbox" value="${tour._id}" onchange="calcularCotizacion()"> ${tour.name} (Interno: COP ${tour.internoCop.toLocaleString()} / Venta: USD ${tour.ventaUsd})`;
+      tourCheckboxesContainer.appendChild(label);
+    });
+  } catch (error) {
+    console.error("Error loading tours for quotation:", error);
+  }
+}
+
+// Make sure "allTours" is declared as a global variable
+let allTours = [];
+
     // Call this function when the page loads
     window.addEventListener('DOMContentLoaded', loadToursForQuotation);
+
+// Define a Helper Function to Compute Tour Costs
+
+function computeTourCosts(tour, numPersonas, exchangeRate) {
+    // Base net cost: the tour's internal price multiplied by the number of persons (in COP)
+    const baseNetTour = tour.internoCop * numPersonas;
+
+    // Find the appropriate car cost from the "costoPorCarro" array (assumed stored in COP)
+    let netTransportCop = 0;
+    if (tour.costoPorCarro && tour.costoPorCarro.length > 0) {
+       tour.costoPorCarro.forEach(rule => {
+         if (numPersonas >= rule.minPax && numPersonas <= rule.maxPax) {
+             netTransportCop = rule.priceCar; // in COP
+         }
+       });
+    }
+    const totalNetTour = baseNetTour + netTransportCop;
+
+    // Base sale cost: tour.sale price multiplied by exchange rate and number of persons
+    const baseSaleTour = (tour.ventaUsd * exchangeRate) * numPersonas;
+
+    // Find the per-person transport price from "precioPorPax" (assumed stored in USD)
+    let transportSaleUsd = 0;
+    if (tour.precioPorPax && tour.precioPorPax.length > 0) {
+       tour.precioPorPax.forEach(rule => {
+         if (numPersonas >= rule.minPax && numPersonas <= rule.maxPax) {
+             transportSaleUsd = rule.pricePax; // in USD per person
+         }
+       });
+    }
+    // Convert to COP and multiply by number of persons
+    const saleTransportCop = (transportSaleUsd * exchangeRate) * numPersonas;
+    const totalSaleTour = baseSaleTour + saleTransportCop;
+
+    return {
+      totalNetTour,    // in COP
+      totalSaleTour    // in COP
+    };
+}
+
+    
   </script>
-  
+
+
+    
 
 </body>
 </html>
