@@ -447,8 +447,8 @@ tourCheckboxes.forEach(checkbox => {
         if (tour) {
             // Compute the totals for this tour using a helper function
             let costs = computeTourCosts(tour, numPersonas, exchangeRate);
-            totalToursNeto = totalNetTour;
-            totalToursVenta = totalSaleTour;
+            totalToursNeto += costs.totalNetTour;
+            totalToursVenta += costs.totalSaleTour;
         }
     }
 });
