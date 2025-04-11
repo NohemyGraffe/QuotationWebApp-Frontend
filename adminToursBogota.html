@@ -91,7 +91,7 @@
   // Global variable to store tours from the database
   let toursData = [];
 
-  // A quick utility to show Bootstrap alerts
+  // Utility function to show Bootstrap alerts
   function showNotification(message, type = "success") {
     const notificationDiv = document.getElementById("notification");
     notificationDiv.innerHTML = `
@@ -103,13 +103,13 @@
   }
 
   // -------------------------------------------------
-  // 1) Load tours from the database via API GET call
-  async function loadTours() {
+  // 1) Load tours from your API and render them.
+  async function loadTours(openTourId = null) {
     try {
       const response = await fetch("https://multyviajes-backend.onrender.com/api/toursbogota");
       if (!response.ok) throw new Error("Error fetching tours data");
       toursData = await response.json();
-      renderTours();
+      renderTours(openTourId);
     } catch (error) {
       console.error("Error loading tours:", error);
       showNotification("Error al cargar los tours.", "danger");
@@ -117,7 +117,7 @@
   }
 
   // -------------------------------------------------
-  // 2) Render the tours (using tour._id instead of a simulated id)
+  // 2) Render the tours (using tour._id)
   function renderTours(openTourId = null) {
     const container = document.getElementById("tours-container");
     container.innerHTML = ""; // Clear existing tours
@@ -283,7 +283,7 @@
       });
       if (!response.ok) throw new Error("Error al eliminar el tour");
       showNotification("Tour eliminado exitosamente", "success");
-      loadTours(); // Refresh tours list
+      loadTours();
     } catch (error) {
       console.error("Error deleting tour:", error);
       showNotification("Error al eliminar el tour", "danger");
@@ -291,8 +291,7 @@
   }
 
   // -------------------------------------------------
-  // 5) PUT - Update a Tour (for adding/deleting transportation rules)
-  // Use this function as the basis for both adding and deleting rules.
+  // 5) Helper: Update a Tour via PUT request (used for adding/deleting pricing rules)
   async function updateTour(tour) {
     try {
       const response = await fetch(`https://multyviajes-backend.onrender.com/api/toursbogota/${tour._id}`, {
@@ -302,7 +301,6 @@
       });
       if (!response.ok) throw new Error("Error al actualizar el tour");
       showNotification("Tour actualizado exitosamente", "success");
-      loadTours();
     } catch (error) {
       console.error("Error updating tour:", error);
       showNotification("Error al actualizar el tour", "danger");
@@ -316,7 +314,7 @@
     const form = event.target;
     const minPax = parseInt(form.minPax.value) || 0;
     const maxPax = parseInt(form.maxPax.value) || 0;
-    const pricePax = parseInt(form.pricePax.value) || 0; // in COP (or USD if necessary)
+    const pricePax = parseInt(form.pricePax.value) || 0; // in COP
 
     if (minPax > maxPax) {
       showNotification("El mínimo de pax no puede superar el máximo.", "danger");
@@ -332,6 +330,7 @@
     tour.precioPorPax.push({ minPax, maxPax, pricePax });
     form.reset();
     await updateTour(tour);
+    await loadTours(tour._id); // Keep current tour open
   }
 
   // -------------------------------------------------
@@ -345,6 +344,7 @@
     }
     tour.precioPorPax.splice(index, 1);
     await updateTour(tour);
+    await loadTours(tour._id);
   }
 
   // -------------------------------------------------
@@ -370,6 +370,7 @@
     tour.costoPorCarro.push({ minPax, maxPax, priceCar });
     form.reset();
     await updateTour(tour);
+    await loadTours(tour._id);
   }
 
   // -------------------------------------------------
@@ -383,9 +384,9 @@
     }
     tour.costoPorCarro.splice(index, 1);
     await updateTour(tour);
+    await loadTours(tour._id);
   }
 
   // Initially load tours from the API
   loadTours();
 </script>
-
