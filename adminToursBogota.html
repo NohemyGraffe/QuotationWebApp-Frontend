@@ -76,16 +76,19 @@
   </form>
 </div>
 
+
+
+  
+
 <!-- Bootstrap Bundle with Popper (for interactive components) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
   /*************************************************
-   * Front-End Only: Simulated Data & In-Memory CRUD
+   * API-Driven CRUD for Tours (Bogotá)
    *************************************************/
   
-  // We'll store all tours in this array for now.
-  // Later, you'll replace these with API calls to load/save data.
+  // Global variable to store tours from the database
   let toursData = [];
 
   // A quick utility to show Bootstrap alerts
@@ -99,15 +102,30 @@
     `;
   }
 
-  // Renders the entire list of tours
+  // -------------------------------------------------
+  // 1) Load tours from the database via API GET call
+  async function loadTours() {
+    try {
+      const response = await fetch("https://multyviajes-backend.onrender.com/api/toursbogota");
+      if (!response.ok) throw new Error("Error fetching tours data");
+      toursData = await response.json();
+      renderTours();
+    } catch (error) {
+      console.error("Error loading tours:", error);
+      showNotification("Error al cargar los tours.", "danger");
+    }
+  }
+
+  // -------------------------------------------------
+  // 2) Render the tours (using tour._id instead of a simulated id)
   function renderTours(openTourId = null) {
     const container = document.getElementById("tours-container");
     container.innerHTML = ""; // Clear existing tours
 
     toursData.forEach((tour) => {
-      const tourId = `tour-${tour.id}`;
-      const isOpen = openTourId === tour.id ? "show" : "";
-      const isExpanded = openTourId === tour.id ? "true" : "false";
+      const tourId = `tour-${tour._id}`;
+      const isOpen = openTourId === tour._id ? "show" : "";
+      const isExpanded = openTourId === tour._id ? "true" : "false";
       const tourHtml = `
         <div class="accordion-item">
           <h2 class="accordion-header" id="heading-${tourId}">
@@ -121,7 +139,7 @@
                 <strong>Precio interno (COP):</strong> ${Number(tour.internoCop).toLocaleString()}<br/>
                 <strong>Precio de venta (USD):</strong> ${Number(tour.ventaUsd).toLocaleString()}
               </p>
-              <button class="btn btn-danger btn-sm mb-3" onclick="deleteTour('${tour.id}')">
+              <button class="btn btn-danger btn-sm mb-3" onclick="deleteTour('${tour._id}')">
                 Eliminar este tour
               </button>
 
@@ -137,14 +155,14 @@
                       <th>Acciones</th>
                     </tr>
                   </thead>
-                  <tbody id="precioPax-body-${tour.id}">
+                  <tbody id="precioPax-body-${tour._id}">
                     ${tour.precioPorPax.map((rule, index) => `
                       <tr>
                         <td>${rule.minPax}</td>
                         <td>${rule.maxPax}</td>
                         <td>${Number(rule.pricePax).toLocaleString()}</td>
                         <td>
-                          <button class="btn btn-danger btn-sm" onclick="deletePrecioPax('${tour.id}', ${index})">
+                          <button class="btn btn-danger btn-sm" onclick="deletePrecioPax('${tour._id}', ${index})">
                             Eliminar
                           </button>
                         </td>
@@ -152,7 +170,7 @@
                     `).join('')}
                   </tbody>
                 </table>
-                <form class="row gy-2 gx-3 align-items-center" onsubmit="addPrecioPax(event, '${tour.id}')">
+                <form class="row gy-2 gx-3 align-items-center" onsubmit="addPrecioPax(event, '${tour._id}')">
                   <div class="col-auto">
                     <label>Min Pax</label>
                     <input type="number" class="form-control" name="minPax" required />
@@ -183,14 +201,14 @@
                       <th>Acciones</th>
                     </tr>
                   </thead>
-                  <tbody id="costoCarro-body-${tour.id}">
+                  <tbody id="costoCarro-body-${tour._id}">
                     ${tour.costoPorCarro.map((rule, index) => `
                       <tr>
                         <td>${rule.minPax}</td>
                         <td>${rule.maxPax}</td>
                         <td>${Number(rule.priceCar).toLocaleString()}</td>
                         <td>
-                          <button class="btn btn-danger btn-sm" onclick="deleteCostoCarro('${tour.id}', ${index})">
+                          <button class="btn btn-danger btn-sm" onclick="deleteCostoCarro('${tour._id}', ${index})">
                             Eliminar
                           </button>
                         </td>
@@ -198,7 +216,7 @@
                     `).join('')}
                   </tbody>
                 </table>
-                <form class="row gy-2 gx-3 align-items-center" onsubmit="addCostoCarro(event, '${tour.id}')">
+                <form class="row gy-2 gx-3 align-items-center" onsubmit="addCostoCarro(event, '${tour._id}')">
                   <div class="col-auto">
                     <label>Min Pax</label>
                     <input type="number" class="form-control" name="minPax" required />
@@ -224,12 +242,9 @@
     });
   }
 
-  /*************************************************
-   * FRONT-END CRUD-Like Functions (No Real Backend)
-   *************************************************/
-
-  // 1) Add a New Tour
-  document.getElementById("new-tour-form").addEventListener("submit", function(e) {
+  // -------------------------------------------------
+  // 3) POST - Add a New Tour via API
+  document.getElementById("new-tour-form").addEventListener("submit", async function(e) {
     e.preventDefault();
     const name = document.getElementById("tour-name").value.trim();
     const internoCop = parseInt(document.getElementById("internoCop").value) || 0;
@@ -240,72 +255,101 @@
       return;
     }
 
-    // Simulate an ID
-    const newTour = {
-      id: Date.now().toString(), // unique-ish ID
-      name,
-      internoCop,
-      ventaUsd,
-      // Initialize empty arrays
-      precioPorPax: [],
-      costoPorCarro: []
-    };
+    const newTour = { name, internoCop, ventaUsd, precioPorPax: [], costoPorCarro: [] };
 
-    toursData.push(newTour);
-    showNotification("¡Tour agregado exitosamente!");
-    e.target.reset(); // clear form
-    renderTours();
+    try {
+      const response = await fetch("https://multyviajes-backend.onrender.com/api/toursbogota", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTour)
+      });
+      if (!response.ok) throw new Error("Error al agregar el tour");
+      showNotification("¡Tour agregado exitosamente!", "success");
+      document.getElementById("new-tour-form").reset();
+      loadTours(); // Reload tours from DB
+    } catch (error) {
+      console.error("Error adding tour:", error);
+      showNotification("Error al agregar el tour", "danger");
+    }
   });
 
-  // 2) Delete Entire Tour
-  function deleteTour(tourId) {
+  // -------------------------------------------------
+  // 4) DELETE - Remove a Tour via API
+  async function deleteTour(tourId) {
     if (!confirm("¿Eliminar este tour por completo?")) return;
-    toursData = toursData.filter(t => t.id !== tourId);
-    showNotification("Tour eliminado exitosamente");
-    renderTours();
+    try {
+      const response = await fetch(`https://multyviajes-backend.onrender.com/api/toursbogota/${tourId}`, {
+        method: "DELETE"
+      });
+      if (!response.ok) throw new Error("Error al eliminar el tour");
+      showNotification("Tour eliminado exitosamente", "success");
+      loadTours(); // Refresh tours list
+    } catch (error) {
+      console.error("Error deleting tour:", error);
+      showNotification("Error al eliminar el tour", "danger");
+    }
   }
 
-  // 3) Add Precio por Pax (COP)
-  function addPrecioPax(event, tourId) {
+  // -------------------------------------------------
+  // 5) PUT - Update a Tour (for adding/deleting transportation rules)
+  // Use this function as the basis for both adding and deleting rules.
+  async function updateTour(tour) {
+    try {
+      const response = await fetch(`https://multyviajes-backend.onrender.com/api/toursbogota/${tour._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(tour)
+      });
+      if (!response.ok) throw new Error("Error al actualizar el tour");
+      showNotification("Tour actualizado exitosamente", "success");
+      loadTours();
+    } catch (error) {
+      console.error("Error updating tour:", error);
+      showNotification("Error al actualizar el tour", "danger");
+    }
+  }
+
+  // -------------------------------------------------
+  // 6) Add a new "Precio por Pax" rule (update tour)
+  async function addPrecioPax(event, tourId) {
     event.preventDefault();
     const form = event.target;
     const minPax = parseInt(form.minPax.value) || 0;
     const maxPax = parseInt(form.maxPax.value) || 0;
-    const pricePax = parseInt(form.pricePax.value) || 0; // in COP
+    const pricePax = parseInt(form.pricePax.value) || 0; // in COP (or USD if necessary)
 
     if (minPax > maxPax) {
       showNotification("El mínimo de pax no puede superar el máximo.", "danger");
       return;
     }
 
-    const tour = toursData.find(t => t.id === tourId);
+    const tour = toursData.find(t => t._id === tourId);
     if (!tour) {
       showNotification("Tour no encontrado.", "danger");
       return;
     }
 
-    // Add new rule
     tour.precioPorPax.push({ minPax, maxPax, pricePax });
-    showNotification("Nueva regla de 'precio por pax' agregada.");
     form.reset();
-    renderTours(tourId); // Keep the current tour open
+    await updateTour(tour);
   }
 
-  // 4) Delete a Precio por Pax rule
-  function deletePrecioPax(tourId, index) {
+  // -------------------------------------------------
+  // 7) Delete a "Precio por Pax" rule (update tour)
+  async function deletePrecioPax(tourId, index) {
     if (!confirm("¿Eliminar esta regla de precio por pax?")) return;
-    const tour = toursData.find(t => t.id === tourId);
+    const tour = toursData.find(t => t._id === tourId);
     if (!tour) {
       showNotification("Tour no encontrado.", "danger");
       return;
     }
     tour.precioPorPax.splice(index, 1);
-    showNotification("Regla eliminada.");
-    renderTours();
+    await updateTour(tour);
   }
 
-  // 5) Add Costo por Carro (USD)
-  function addCostoCarro(event, tourId) {
+  // -------------------------------------------------
+  // 8) Add a new "Costo por Carro" rule (update tour)
+  async function addCostoCarro(event, tourId) {
     event.preventDefault();
     const form = event.target;
     const minPax = parseInt(form.minPax.value) || 0;
@@ -317,35 +361,31 @@
       return;
     }
 
-    const tour = toursData.find(t => t.id === tourId);
+    const tour = toursData.find(t => t._id === tourId);
     if (!tour) {
       showNotification("Tour no encontrado.", "danger");
       return;
     }
 
-    // Add new rule
     tour.costoPorCarro.push({ minPax, maxPax, priceCar });
-    showNotification("Nueva regla de 'costo por carro' agregada.");
     form.reset();
-    renderTours(tourId); // Keep the current tour open
+    await updateTour(tour);
   }
 
-  // 6) Delete a Costo por Carro rule
-  function deleteCostoCarro(tourId, index) {
+  // -------------------------------------------------
+  // 9) Delete a "Costo por Carro" rule (update tour)
+  async function deleteCostoCarro(tourId, index) {
     if (!confirm("¿Eliminar esta regla de costo por carro?")) return;
-    const tour = toursData.find(t => t.id === tourId);
+    const tour = toursData.find(t => t._id === tourId);
     if (!tour) {
       showNotification("Tour no encontrado.", "danger");
       return;
     }
     tour.costoPorCarro.splice(index, 1);
-    showNotification("Regla eliminada.");
-    renderTours();
+    await updateTour(tour);
   }
 
-  // Initial render with no data
-  renderTours();
+  // Initially load tours from the API
+  loadTours();
 </script>
-</body>
-</html>
 
