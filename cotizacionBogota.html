@@ -445,13 +445,14 @@ tourCheckboxes.forEach(checkbox => {
         // Look up the tour object by its _id (checkbox.value holds the tour's _id now)
         let tour = allTours.find(t => t._id === checkbox.value);
         if (tour) {
-            // Compute the totals for this tour using a helper function
             let costs = computeTourCosts(tour, numPersonas, exchangeRate);
             totalToursNeto += costs.totalNetTour;
             totalToursVenta += costs.totalSaleTour;
         }
     }
 });
+
+            
 
 totalNeto += totalToursNeto;
 totalVenta += totalToursVenta;
@@ -518,8 +519,10 @@ let allTours = [];
 // Define a Helper Function to Compute Tour Costs
 
 function computeTourCosts(tour, numPersonas, exchangeRate) {
+  // Calculate base net cost: tour internal price multiplied by number of persons
   const baseNetTour = tour.internoCop * numPersonas;
 
+  // Calculate net transportation cost using costoPorCarro rules (in COP)
   let netTransportCop = 0;
   if (tour.costoPorCarro && tour.costoPorCarro.length > 0) {
     tour.costoPorCarro.forEach(rule => {
@@ -530,8 +533,10 @@ function computeTourCosts(tour, numPersonas, exchangeRate) {
   }
   const totalNetTour = baseNetTour + netTransportCop;
 
- // const baseSaleTour = (tour.ventaUsd * exchangeRate) * numPersonas;
+  // Calculate base sale cost: tour sale price multiplied by exchange rate and number of persons
+  const baseSaleTour = (tour.ventaUsd * exchangeRate) * numPersonas;
 
+  // Calculate transport sale price per person from precioPorPax (in USD)
   let transportSaleUsd = 0;
   if (tour.precioPorPax && tour.precioPorPax.length > 0) {
     tour.precioPorPax.forEach(rule => {
@@ -540,13 +545,13 @@ function computeTourCosts(tour, numPersonas, exchangeRate) {
       }
     });
   }
-  const saleTransportUsd = (transportSaleUsd * exchangeRate) * numPersonas;
+  // Convert per-person transport sale to COP and multiply by number of persons
+  const saleTransportCop = (transportSaleUsd * exchangeRate) * numPersonas;
 
-  const totalSaleTour =  ((tour.ventaUsd * exchangeRate) + saleTransportUsd) * numPersonas ;
-    
-  //const totalSaleTour = baseSaleTour + saleTransportCop;
+  // Final total sale cost is the sum of base sale and transport sale
+  const totalSaleTour = baseSaleTour + saleTransportCop;
 
-  return { totalNetTour, totalSaleTour, netTransportCop, saleTransportUsd };
+  return { totalNetTour, totalSaleTour, netTransportCop, transportSaleUsd };
 }
 
 
