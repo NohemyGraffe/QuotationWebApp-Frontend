@@ -432,6 +432,8 @@ function calcularPreciosRegreso() {
             let totalVenta = precioHotelNeto + (utilidadHotel * numPersonas) + precioTransporteVenta + precioTransporteVentaRegreso + costosAdicionalesNeto + costosAdicionalesUtilidad;
 
 
+
+            
             
 // Ensure that "allTours" holds your fetched tours and numPersonas, exchangeRate are already defined.
 let tourCheckboxes = document.querySelectorAll("#tourCheckboxes input[type='checkbox']");
@@ -445,8 +447,8 @@ tourCheckboxes.forEach(checkbox => {
         if (tour) {
             // Compute the totals for this tour using a helper function
             let costs = computeTourCosts(tour, numPersonas, exchangeRate);
-            totalToursNeto += costs.totalNetTour;
-            totalToursVenta += costs.totalSaleTour;
+            totalToursNeto = totalNetTour;
+            totalToursVenta = totalSaleTour;
         }
     }
 });
@@ -454,7 +456,7 @@ tourCheckboxes.forEach(checkbox => {
 totalNeto += totalToursNeto;
 totalVenta += totalToursVenta;
 
-
+//netTransportCop, saleTransportUsd
 
 
             let totalPpNeto = Math.floor((precioHotelNeto + precioTransporteNeto + precioTransporteNetoRegreso + totalToursNeto + costosAdicionalesNeto) / numPersonas);
@@ -479,7 +481,76 @@ totalVenta += totalToursVenta;
             actualizarResumenItinerario();
             actualizarResumenTotalPasajeros();
             actualizarResumenTotal();
+
+
         }
+
+
+async function loadToursForQuotation() {
+  try {
+    const response = await fetch('https://multyviajes-backend.onrender.com/api/toursbogota');
+    if (!response.ok) throw new Error('Error fetching tours data');
+    const tours = await response.json();
+
+    // **IMPORTANT:** Store fetched tours globally for later lookup
+    allTours = tours;
+
+    const tourCheckboxesContainer = document.getElementById('tourCheckboxes');
+    tourCheckboxesContainer.innerHTML = ''; // Clear any existing content
+
+    // Create a checkbox for each tour with its _id as value
+    tours.forEach(tour => {
+      const label = document.createElement('label');
+      label.innerHTML = `<input type="checkbox" value="${tour._id}" onchange="calcularCotizacion()"> ${tour.name} (Interno: COP ${tour.internoCop.toLocaleString()} / Venta: USD ${tour.ventaUsd})`;
+      tourCheckboxesContainer.appendChild(label);
+    });
+  } catch (error) {
+    console.error("Error loading tours for quotation:", error);
+  }
+}
+
+// Make sure "allTours" is declared as a global variable
+let allTours = [];
+
+    // Call this function when the page loads
+    window.addEventListener('DOMContentLoaded', loadToursForQuotation);
+
+// Define a Helper Function to Compute Tour Costs
+
+function computeTourCosts(tour, numPersonas, exchangeRate) {
+  const baseNetTour = tour.internoCop * numPersonas;
+
+  let netTransportCop = 0;
+  if (tour.costoPorCarro && tour.costoPorCarro.length > 0) {
+    tour.costoPorCarro.forEach(rule => {
+      if (numPersonas >= rule.minPax && numPersonas <= rule.maxPax) {
+        netTransportCop = rule.priceCar;
+      }
+    });
+  }
+  const totalNetTour = baseNetTour + netTransportCop;
+
+ // const baseSaleTour = (tour.ventaUsd * exchangeRate) * numPersonas;
+
+  let transportSaleUsd = 0;
+  if (tour.precioPorPax && tour.precioPorPax.length > 0) {
+    tour.precioPorPax.forEach(rule => {
+      if (numPersonas >= rule.minPax && numPersonas <= rule.maxPax) {
+        transportSaleUsd = rule.pricePax;
+      }
+    });
+  }
+  const saleTransportUsd = (transportSaleUsd * exchangeRate) * numPersonas;
+
+  const totalSaleTour =  ((tour.ventaUsd * exchangeRate) + saleTransportUsd) * numPersonas ;
+    
+  //const totalSaleTour = baseSaleTour + saleTransportCop;
+
+  return { totalNetTour, totalSaleTour, netTransportCop, saleTransportUsd };
+}
+
+
+
 
         function agregarHotel() {
             const hotelContainer = document.getElementById('hotelContainer');
@@ -520,6 +591,10 @@ totalVenta += totalToursVenta;
             // Update the summary immediately when a new hotel is added
             actualizarResumenHoteles();
         }
+
+
+
+
 
         function removerHotel(button) {
             const hotelRow = button.parentElement;
@@ -1084,77 +1159,11 @@ document.addEventListener("DOMContentLoaded", function() {
             actualizarResumenTotal();
         }, 100); // Delay of 100ms
     });
+
+    
 </script>
 
 
-
-<script>
-async function loadToursForQuotation() {
-  try {
-    const response = await fetch('https://multyviajes-backend.onrender.com/api/toursbogota');
-    if (!response.ok) throw new Error('Error fetching tours data');
-    const tours = await response.json();
-
-    // **IMPORTANT:** Store fetched tours globally for later lookup
-    allTours = tours;
-
-    const tourCheckboxesContainer = document.getElementById('tourCheckboxes');
-    tourCheckboxesContainer.innerHTML = ''; // Clear any existing content
-
-    // Create a checkbox for each tour with its _id as value
-    tours.forEach(tour => {
-      const label = document.createElement('label');
-      label.innerHTML = `<input type="checkbox" value="${tour._id}" onchange="calcularCotizacion()"> ${tour.name} (Interno: COP ${tour.internoCop.toLocaleString()} / Venta: USD ${tour.ventaUsd})`;
-      tourCheckboxesContainer.appendChild(label);
-    });
-  } catch (error) {
-    console.error("Error loading tours for quotation:", error);
-  }
-}
-
-// Make sure "allTours" is declared as a global variable
-let allTours = [];
-
-    // Call this function when the page loads
-    window.addEventListener('DOMContentLoaded', loadToursForQuotation);
-
-// Define a Helper Function to Compute Tour Costs
-
-function computeTourCosts(tour, numPersonas, exchangeRate) {
-  const baseNetTour = tour.internoCop * numPersonas;
-
-  let netTransportCop = 0;
-  if (tour.costoPorCarro && tour.costoPorCarro.length > 0) {
-    tour.costoPorCarro.forEach(rule => {
-      if (numPersonas >= rule.minPax && numPersonas <= rule.maxPax) {
-        netTransportCop = rule.priceCar;
-      }
-    });
-  }
-  const totalNetTour = baseNetTour + netTransportCop;
-
-  const baseSaleTour = (tour.ventaUsd * exchangeRate) * numPersonas;
-
-  let transportSaleUsd = 0;
-  if (tour.precioPorPax && tour.precioPorPax.length > 0) {
-    tour.precioPorPax.forEach(rule => {
-      if (numPersonas >= rule.minPax && numPersonas <= rule.maxPax) {
-        transportSaleUsd = rule.pricePax;
-      }
-    });
-  }
-  const saleTransportCop = (transportSaleUsd * exchangeRate) * numPersonas;
-  const totalSaleTour = baseSaleTour + saleTransportCop;
-
-  return { totalNetTour, totalSaleTour };
-}
-
-
-    
-  </script>
-
-
-    
 
 </body>
 </html>
