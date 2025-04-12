@@ -1,71 +1,63 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resumen de Cotización</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-            color: #333;
-        }
-        .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        h2, h3 {
-            color: #0056b3;
-            border-bottom: 2px solid #0056b3;
-            padding-bottom: 5px;
-        }
-        p {
-            margin: 10px 0;
-        }
-        strong {
-            color: #333;
-        }
-        #resumenHoteles, #resumenItinerario {
-            margin: 20px 0;
-            padding: 10px;
-            background: #f1f1f1;
-            border-radius: 5px;
-        }
-        #resumenHoteles p, #resumenItinerario p {
-            margin: 5px 0;
-        }
-        span {
-            font-weight: bold;
-            color: #0056b3;
-        }
-        .copy-button {
-            display: inline-block;
-            margin: 20px 0;
-            padding: 10px 15px;
-            background-color: #0056b3;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .copy-button:hover {
-            background-color: #003d80;
-        }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    <script>
+  <meta charset="UTF-8">
+  <title>Resumen Interno de la Cotización</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      line-height: 1.6;
+    }
+    h2 {
+      text-align: center;
+      color: #0056b3;
+      margin-bottom: 20px;
+    }
+    p {
+      margin: 10px 0;
+    }
+    strong {
+      color: #333;
+    }
+    .copy-button {
+      display: inline-block;
+      margin: 20px 5px 0 5px;
+      padding: 10px 15px;
+      background-color: #0056b3;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .copy-button:hover {
+      background-color: #003d80;
+    }
+    /* Optional: style the divider line */
+    .divider {
+      margin: 20px 0;
+      border-top: 2px dashed #ccc;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+  <script>
     window.onload = function() {
-    const data = JSON.parse(localStorage.getItem("cotizacionData"));
-    if (data) {
-        // ✅ Restore General Data
+      const data = JSON.parse(localStorage.getItem("cotizacionData"));
+      if (data) {
+        // Update general data
         document.getElementById("numPersonas").textContent = data.numPersonas;
         document.getElementById("exchangeRate").textContent = data.exchangeRate;
         document.getElementById("costosAdicionalesNeto").textContent = data.costosAdicionalesNeto;
@@ -78,263 +70,110 @@
         document.getElementById("totalPpVentaUsd").textContent = data.totalPpVentaUsd;
         document.getElementById("totalNetoCop").textContent = data.totalNetoCop;
 
-        // ✅ Restore Itinerary
-        const resumenItinerario = document.getElementById("resumenItinerario");
-        resumenItinerario.innerHTML = "<p><strong>Itinerario:</strong></p>";
-        if (data.itinerario && Array.isArray(data.itinerario)) {
-            data.itinerario.forEach(it => {
-                let itinerarioEntry = document.createElement("p");
-                itinerarioEntry.innerHTML = `<strong>Fecha:</strong> ${it.fecha}<br>
-                                             <strong>Actividad:</strong> ${it.actividad}`;
-                resumenItinerario.appendChild(itinerarioEntry);
-            });
-        }
+        // Restore itinerary as line-break separated text
+        const itinerarioList = data.itinerario && Array.isArray(data.itinerario)
+          ? data.itinerario.map(item => `${item.fecha} ${item.actividad}`).join('\n')
+          : "N/A";
+        document.getElementById("itinerarioList").innerText = itinerarioList;
 
-        // ✅ Restore Hotels - FIXES THE ISSUE
-        const hotelContainer = document.getElementById("resumenHoteles");
-        hotelContainer.innerHTML = ""; // Clear previous content
-        let totalHotelNeto = 0; // Variable to accumulate net prices
-
+        // Restore hotels summary from data.hoteles array
+        let hotelesSummary = "";
+        let totalHotelNeto = 0;
         if (data.hoteles && Array.isArray(data.hoteles)) {
-            data.hoteles.forEach(hotel => {
-                let hotelEntry = document.createElement("p");
-                hotelEntry.innerHTML = `<strong>Hotel:</strong> ${hotel.nombre}<br>
-                                        <strong>Acomodación:</strong> ${hotel.acomodacion}<br>
-                                        <strong>Precio Neto:</strong> ${parseInt(hotel.precioNeto).toLocaleString()} COP`;
-                hotelContainer.appendChild(hotelEntry);
-
-                // ✅ Sum the net prices correctly
-                totalHotelNeto += parseInt(hotel.precioNeto) || 0;
-            });
+          data.hoteles.forEach(hotel => {
+            hotelesSummary += `Hotel: ${hotel.nombre}\nAcomodación: ${hotel.acomodacion}\nPrecio Neto: ${parseInt(hotel.precioNeto).toLocaleString()} COP\n\n`;
+            totalHotelNeto += parseInt(hotel.precioNeto) || 0;
+          });
         } else {
-            hotelContainer.innerHTML = "<p>No se han agregado hoteles.</p>";
+          hotelesSummary = "No se han agregado hoteles.\n";
         }
+        document.getElementById("hotelSummary").innerText = hotelesSummary;
+        document.getElementById("precioHotelNeto").innerText = totalHotelNeto.toLocaleString();
 
-        // ✅ Display the corrected total net price
-        document.getElementById("precioHotelNeto").textContent = totalHotelNeto.toLocaleString();
+        // The rest of your dynamic data can be set similarly.
+        document.getElementById("totalPorPasajero").innerText = data.totalPorPasajero || "N/A";
+        document.getElementById("totalCotizacionUsd").innerText = data.totalCotizacionUsd || "N/A";
+        document.getElementById("hotelNeto").innerText = data.hotelNeto || "N/A";
+        document.getElementById("serviciosNeto").innerText = data.serviciosNeto || "N/A";
+        document.getElementById("totalCobrarCliente").innerText = data.totalCobrarCliente || "N/A";
+        document.getElementById("totalCostosNeto").innerText = data.totalCostosNeto || "N/A";
+        document.getElementById("totalUtilidad").innerText = data.totalUtilidad || "N/A";
+        document.getElementById("utilidadPorPersona").innerText = data.utilidadPorPersona || "N/A";
+      }
+    };
 
-          // Restore Costos Adicionales Descripción
-          const costosAdicionalesDescripcion = document.getElementById("costosAdicionalesDescripcion");
-            costosAdicionalesDescripcion.textContent = data.costosAdicionalesDescripcion || "N/A";
-
-    }
-};
-
-        function copiarResumen() {
-            const container = document.querySelector('.container');
-            const buttons = container.querySelectorAll('.copy-button, input'); // Select buttons and input fields
-            buttons.forEach(button => button.style.display = 'none'); // Temporarily hide buttons and input fields
-
-            const textToCopy = container.innerText; // Get the visible text
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                alert('Resumen copiado al portapapeles.');
-            }).catch(err => {
-                console.error('Error al copiar el resumen:', err);
-            }).finally(() => {
-                buttons.forEach(button => button.style.display = 'inline-block'); // Restore buttons and input fields
-            });
-        }
-
-        async function guardarComoPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    const margin = 10;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight(); // Define the page height
-    const textWidth = pageWidth - margin * 2;
-
-    // Title
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text("Resumen Interno de la Cotización", margin, 20);
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    let y = 30; // Initial Y position
-
-    function addInlineSection(label, value, isSubtitle = false, addExtraSpace = false) {
-        if (isSubtitle) {
-            y += 8; // Extra space before subtitles
-            doc.setFont("helvetica", "bold"); 
-            doc.setFontSize(14); // Bigger font for subtitles
-        } else {
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(12); // Regular font for section titles
-        }
-
-        const labelWidth = doc.getTextWidth(label);
-        doc.text(label, margin, y); // Add label
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10); // Smaller font for values
-        doc.text(value, margin + labelWidth + 2, y); // Add value next to label
-
-        y += addExtraSpace ? 12 : 8; // Extra space below important sections
-        doc.setFont("helvetica", "bold"); // Reset font to bold for next title
-
-        // Check if the content exceeds the page height
-        if (y > pageHeight - 20) {
-            doc.addPage(); // Add a new page
-            y = 20; // Reset Y position for the new page
-        }
+    function copiarResumen() {
+      const resumenElement = document.getElementById("summaryContainer");
+      navigator.clipboard.writeText(resumenElement.innerText)
+        .then(() => alert("Resumen copiado al portapapeles"))
+        .catch(err => alert("Error al copiar el resumen: " + err));
     }
 
-    addInlineSection("Número de personas:", document.getElementById("numPersonas").textContent);
-    addInlineSection("Tasa de cambio:", document.getElementById("exchangeRate").textContent);
+    async function guardarComoPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const margin = 10;
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let y = 20;
 
-   // Add Hotels Section
-addInlineSection("Hoteles", "", true, true);
-const hotelElements = document.querySelectorAll("#resumenHoteles p");
-if (hotelElements.length > 0) {
-    hotelElements.forEach(hotel => {
-        const hotelText = hotel.innerHTML
-            .replace(/<br>/g, "\n") // Replace <br> with newlines for proper formatting
-            .replace(/<strong>/g, "") // Remove <strong> tags
-            .replace(/<\/strong>/g, ""); // Remove </strong> tags
+      function addLine(text, fontSize = 12, style = "normal", extraSpace = 4) {
+        doc.setFontSize(fontSize);
+        doc.setFont("helvetica", style);
+        doc.text(text, margin, y);
+        y += extraSpace;
+        if (y > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+        }
+      }
 
-        const lines = hotelText.split("\n"); // Split into lines for multi-line text
-        lines.forEach(line => {
-            const [label, value] = line.split(":"); // Split label and value by ":"
-            if (label && value) {
-                const labelWidth = doc.getTextWidth(label.trim() + ":"); // Dynamically calculate label width
-                doc.setFont("helvetica", "bold"); // Set font to bold for the label
-                doc.text(label.trim() + ":", margin, y); // Add the label
-                doc.setFont("helvetica", "normal"); // Reset font to normal for the value
-                doc.text(value.trim(), margin + labelWidth + 2, y); // Add the value right after the label
-            } else {
-                doc.setFont("helvetica", "normal"); // Default to normal font for any unmatched lines
-                doc.text(line.trim(), margin, y);
-            }
-            y += 6; // Add space for each line
-
-            // Check if the content exceeds the page height
-            if (y > pageHeight - 20) {
-                doc.addPage(); // Add a new page
-                y = 20; // Reset Y position for the new page
-            }
-        });
-        y += 4; // Extra space between hotels
-    });
-} else {
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text("No se han agregado hoteles.", margin, y);
-    y += 8;
-
-    // Check if the content exceeds the page height
-    if (y > pageHeight - 20) {
-        doc.addPage(); // Add a new page
-        y = 20; // Reset Y position for the new page
+      addLine("Resumen Interno de la Cotización", 16, "bold", 10);
+      addLine(document.getElementById("summaryContainer").innerText, 12, "normal", 6);
+      const fileName = document.getElementById("pdfFileName").value.trim() || "resumen_cotizacion";
+      doc.save(`${fileName}.pdf`);
     }
-}
-
-// Add Itinerario Section
-addInlineSection("Itinerario", "", true, true); // Add the subtitle only once
-const itinerarioElements = document.querySelectorAll("#resumenItinerario p");
-if (itinerarioElements.length > 1) { // Ensure there are more than one <p> elements
-    itinerarioElements.forEach((itinerario, index) => {
-        if (index === 0) return; // Skip the first <p> element (the duplicate "Itinerario:")
-
-        const itinerarioText = itinerario.innerHTML
-            .replace(/<br>/g, "\n") // Replace <br> with newlines for proper formatting
-            .replace(/<strong>/g, "") // Remove <strong> tags
-            .replace(/<\/strong>/g, ""); // Remove </strong> tags
-
-        const lines = itinerarioText.split("\n"); // Split into lines for multi-line text
-        lines.forEach(line => {
-            const [label, value] = line.split(":"); // Split label and value by ":"
-            if (label && value) {
-                const labelWidth = doc.getTextWidth(label.trim() + ":"); // Dynamically calculate label width
-                doc.setFont("helvetica", "bold"); // Set font to bold for the label
-                doc.text(label.trim() + ":", margin, y); // Add the label
-                doc.setFont("helvetica", "normal"); // Reset font to normal for the value
-                doc.text(value.trim(), margin + labelWidth + 2, y); // Add the value right after the label
-            } else {
-                doc.setFont("helvetica", "normal"); // Default to normal font for any unmatched lines
-                doc.text(line.trim(), margin, y);
-            }
-            y += 6; // Add space for each line
-
-            // Check if the content exceeds the page height
-            if (y > pageHeight - 20) {
-                doc.addPage(); // Add a new page
-                y = 20; // Reset Y position for the new page
-            }
-        });
-        y += 4; // Extra space between itinerary entries
-    });
-} else {
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text("No se ha agregado itinerario.", margin, y);
-    y += 8;
-
-    // Check if the content exceeds the page height
-    if (y > pageHeight - 20) {
-        doc.addPage(); // Add a new page
-        y = 20; // Reset Y position for the new page
-    }
-}
-
-    addInlineSection("Costos netos (En COP)", "", true, true);
-    addInlineSection("Precio del hotel:", document.getElementById("precioHotelNeto").textContent + " COP");
-    addInlineSection("Precio de traslados:", "", true); // Subtitle
-    addInlineSection("- Llegada:", document.getElementById("precioTransporteNeto").textContent + " COP");
-    addInlineSection("- Regreso:", document.getElementById("precioTransporteNetoRegreso").textContent + " COP");
-    y += 8; // Add extra space below "Precio de traslados" section
-    addInlineSection("Total en tours:", document.getElementById("totalToursNeto").textContent + " COP");
-    addInlineSection("Costos adicionales:", document.getElementById("costosAdicionalesNeto").textContent + " COP");
-    addInlineSection("Descripción de costos adicionales:", document.getElementById("costosAdicionalesDescripcion").textContent); // Add description
-
-    addInlineSection("Totales con utilidad (Paga el cliente)", "", true, true);
-    addInlineSection("Servicios y hotel en COP:", document.getElementById("totalVentaCop").textContent + " COP");
-    addInlineSection("Servicios y hotel en USD:", document.getElementById("totalVentaUsd").textContent + " USD");
-    addInlineSection("Por persona en USD:", document.getElementById("totalPpVentaUsd").textContent + " USD");
-
-    addInlineSection("Totales en neto (Paga la empresa)", "", true, true);
-    addInlineSection("Servicios y hotel en COP:", document.getElementById("totalNetoCop").textContent + " COP");
-    addInlineSection("Utilidad de la empresa:", document.getElementById("totalUtilidad").textContent + " COP");
-
-    const fileName = document.getElementById("pdfFileName").value.trim() || "resumen_cotizacion";
-    doc.save(`${fileName}.pdf`);
-}
-
-    </script>
+  </script>
 </head>
 <body>
-    <div class="container">
-        <h2>Resumen Interno de la Cotización</h2>
-        <p><strong>Número de personas:</strong> <span id="numPersonas"></span></p>
-        <p><strong>Tasa de cambio:</strong> <span id="exchangeRate"></span></p>
+    <div class="container" id="summaryContainer">
+        <!-- The dynamic summary will be inserted here based on variables -->
+        <pre style="font-family: inherit; white-space: pre-wrap;">
+*Cotización Medellín*
+
+Hotel: <span id="hotelName">N/A</span>
+Acomodación: <span id="hotelAcomodacion">N/A</span>
+
+Itinerario:
+<span id="itinerarioList">N/A</span>
+
+Total por Pasajero: <span id="totalPorPasajero">N/A</span>
+
+Total = <span id="totalCotizacionUsd">N/A</span>
+
+|||||||||||||||||
+
+*Resumen Interno Cotización*
+
+Hotel Neto (COP): <span id="hotelNeto">N/A</span>
+Servicios Sin Hotel Netos (COP): <span id="serviciosNeto">N/A</span>
+
+--Totales Generales
+
+Total Cobrar al Cliente (COP): <span id="totalCobrarCliente">N/A</span>
+Total Costos Netos (COP): <span id="totalCostosNeto">N/A</span>
+
+--Ganancias de la Empresa
+
+Total de Utilidad (COP): <span id="totalUtilidad">N/A</span>
+Utilidad por Persona (COP): <span id="utilidadPorPersona">N/A</span>
+        </pre>
         
-        <div id="resumenHoteles">
-            <!-- Hotels will be dynamically inserted here -->
-        </div>
-
-        <div id="resumenItinerario"></div>
-
-        <h3>Costos netos (En COP)</h3>
-        <p><strong>Precio del hotel:</strong> <span id="precioHotelNeto"></span> COP</p>
-        <p><strong>Precio de traslados:</strong></p>
-        <p> - Llegada: <span id="precioTransporteNeto"></span> COP</p>
-        <p> - Regreso: <span id="precioTransporteNetoRegreso"></span> COP</p>
-        <p><strong>Total en tours:</strong> <span id="totalToursNeto"></span> COP</p>
-        <p><strong>Costos adicionales:</strong> <span id="costosAdicionalesNeto"></span> COP</p>
-        <p><strong>Descripción de costos adicionales:</strong> <span id="costosAdicionalesDescripcion"></span></p>
-
-        
-        <h3>Totales con utilidad (Paga el cliente):</h3>
-        <p><strong>Servicios y hotel en COP:</strong> <span id="totalVentaCop"></span> COP</p>
-        <p><strong>Servicios y hotel en USD:</strong> <span id="totalVentaUsd"></span> USD</p>
-        <p><strong>Por persona en USD:</strong> <span id="totalPpVentaUsd"></span> USD</p>
-        
-        <h3>Totales en neto (Paga la empresa)</h3>
-        <p><strong>Servicios y hotel en COP:</strong> <span id="totalNetoCop"></span> COP</p>
-        <p><strong>Utilidad de la empresa:</strong> <span id="totalUtilidad"></span> COP</p>
-
-        <input type="text" id="pdfFileName" placeholder="Nombre del archivo PDF" style="margin: 10px 0; padding: 5px; width: calc(100% - 20px);">
-        <button class="copy-button" onclick="copiarResumen()">Copiar resumen</button>
-        <button class="copy-button" onclick="guardarComoPDF()">Guardar como PDF</button>
     </div>
+
+    <input type="text" id="pdfFileName" placeholder="Nombre del archivo PDF" style="margin: 10px 0; padding: 5px; width: 100%;">
+        <button class="copy-button" onclick="copiarResumen()">Copiar Resumen Interno</button>
+        <button class="copy-button" onclick="guardarComoPDF()">Guardar como PDF</button>
+        
 </body>
 </html>
