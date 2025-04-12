@@ -139,7 +139,7 @@
 <body>
     <div class="container">
      
-        <h2>Cotización - Cartagena</h2>
+        <h2>Cotización Cartagena</h2>
 
 
         <label>Número de Personas:</label>
@@ -167,7 +167,7 @@
         
         <h3>Traslado de llegada</h3>
         <label for="pax">Número de Personas:</label>
-        <input type="number" id="pax" min="1" value="1" onchange="calcularPrecios()">
+        <input type="number" id="pax" min="0" value="0" onchange="calcularPrecios()">
 
         <p><strong>Precio Neto (Costo del carro):</strong> <span id="neto">0</span> COP</p>
         <p><strong>Precio con Utilidad (Precio por persona x pax):</strong> <span id="venta">0</span> COP</p>
@@ -177,7 +177,7 @@
 
         <h3>Traslado de Regreso</h3>
         <label for="paxRegreso">Número de Personas:</label>
-        <input type="number" id="paxRegreso" min="1" value="1" onchange="calcularPreciosRegreso()">
+        <input type="number" id="paxRegreso" min="0" value="0" onchange="calcularPreciosRegreso()">
 
         <p><strong>Precio Neto (Costo del carro):</strong> <span id="netoRegreso">0</span> COP</p>
         <p><strong>Precio con Utilidad (Precio por persona x pax):</strong> <span id="ventaRegreso">0</span> COP</p>
@@ -246,7 +246,7 @@
         </div>
 
         <div class="summary">
-            <h3>Resumen de la Cotización</h3>
+            <h3>Cotización Cartagena</h3>
             <div id="resumenHoteles">
                 <p><strong>Hotel:</strong> <span>N/A</span></p>
 
