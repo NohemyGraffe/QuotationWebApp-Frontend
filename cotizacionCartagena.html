@@ -141,6 +141,8 @@
      
         <h2>Cotización Cartagena</h2>
 
+          <button onclick="resetForm()">Nueva Cotización</button>
+
 
         <label>Número de Personas:</label>
         <input type="number" id="numPersonas" value="1" min="1" onchange="calcularCotizacion(); actualizarResumenPasajeros(); actualizarResumenTotalPasajeros(); actualizarResumenTotal();">
@@ -266,7 +268,7 @@
             </div>
             <button id="copiarResumenBtn" onclick="copiarResumen()">Copiar Resumen</button>
             <button onclick="saveAndRedirect()">Ver Resumen Interno de la Cotización</button>
-            <button onclick="resetForm()">Nueva Cotización</button>
+        
 
         </div>
     </div>
