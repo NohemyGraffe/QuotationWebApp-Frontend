@@ -19,18 +19,11 @@
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    pre {
+      font-family: inherit;
+      white-space: pre-wrap; /* preserve formatting */
       line-height: 1.6;
-    }
-    h2 {
-      text-align: center;
-      color: #0056b3;
-      margin-bottom: 20px;
-    }
-    p {
-      margin: 10px 0;
-    }
-    strong {
-      color: #333;
     }
     .copy-button {
       display: inline-block;
@@ -46,10 +39,10 @@
     .copy-button:hover {
       background-color: #003d80;
     }
-    /* Optional: style the divider line */
-    .divider {
-      margin: 20px 0;
-      border-top: 2px dashed #ccc;
+    input#pdfFileName {
+      margin: 10px 0;
+      padding: 5px;
+      width: 100%;
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
@@ -57,42 +50,32 @@
     window.onload = function() {
       const data = JSON.parse(localStorage.getItem("cotizacionData"));
       if (data) {
-        // Update general data
-        document.getElementById("numPersonas").textContent = data.numPersonas;
-        document.getElementById("exchangeRate").textContent = data.exchangeRate;
-        document.getElementById("costosAdicionalesNeto").textContent = data.costosAdicionalesNeto;
-        document.getElementById("totalVentaUsd").textContent = data.totalVentaUsd;
-        document.getElementById("totalUtilidad").textContent = data.totalUtilidad;
-        document.getElementById("totalToursNeto").textContent = data.totalToursNeto || "N/A";
-        document.getElementById("precioTransporteNeto").textContent = data.precioTransporteNeto;
-        document.getElementById("precioTransporteNetoRegreso").textContent = data.precioTransporteNetoRegreso;
-        document.getElementById("totalVentaCop").textContent = data.totalVentaCop;
-        document.getElementById("totalPpVentaUsd").textContent = data.totalPpVentaUsd;
-        document.getElementById("totalNetoCop").textContent = data.totalNetoCop;
-
-        // Restore itinerary as line-break separated text
-        const itinerarioList = data.itinerario && Array.isArray(data.itinerario)
-          ? data.itinerario.map(item => `${item.fecha} ${item.actividad}`).join('\n')
-          : "N/A";
-        document.getElementById("itinerarioList").innerText = itinerarioList;
-
-        // Restore hotels summary from data.hoteles array
-        let hotelesSummary = "";
-        let totalHotelNeto = 0;
-        if (data.hoteles && Array.isArray(data.hoteles)) {
-          data.hoteles.forEach(hotel => {
-            hotelesSummary += `Hotel: ${hotel.nombre}\nAcomodación: ${hotel.acomodacion}\nPrecio Neto: ${parseInt(hotel.precioNeto).toLocaleString()} COP\n\n`;
-            totalHotelNeto += parseInt(hotel.precioNeto) || 0;
-          });
+        // Update summary fields using dynamic data stored in localStorage
+        // (Assumes your form calculations saved keys with these names)
+        // Hotel Info:
+        if (data.hoteles && data.hoteles.length > 0) {
+          // For example, using the first hotel's info:
+          document.getElementById("hotelName").textContent = data.hoteles[0].nombre || "N/A";
+          document.getElementById("hotelAcomodacion").textContent = data.hoteles[0].acomodacion || "N/A";
         } else {
-          hotelesSummary = "No se han agregado hoteles.\n";
+          document.getElementById("hotelName").textContent = "N/A";
+          document.getElementById("hotelAcomodacion").textContent = "N/A";
         }
-        document.getElementById("hotelSummary").innerText = hotelesSummary;
-        document.getElementById("precioHotelNeto").innerText = totalHotelNeto.toLocaleString();
 
-        // The rest of your dynamic data can be set similarly.
-        document.getElementById("totalPorPasajero").innerText = data.totalPorPasajero || "N/A";
+        // Itinerary:
+        if (data.itinerario && Array.isArray(data.itinerario) && data.itinerario.length > 0) {
+          let itineraryText = data.itinerario.map(item => `${item.fecha} ${item.actividad}`).join("\n");
+          document.getElementById("itinerarioList").innerText = itineraryText;
+        } else {
+          document.getElementById("itinerarioList").innerText = "N/A";
+        }
+        
+        // Totals and other fields (update these keys as defined in your calculations)
+        document.getElementById("numPersonas").textContent = data.numPersonas || "N/A";
+        document.getElementById("totalPorPasajero").innerText = data.totalPorPasajero || "N/A"; 
         document.getElementById("totalCotizacionUsd").innerText = data.totalCotizacionUsd || "N/A";
+
+        // Internal summary data
         document.getElementById("hotelNeto").innerText = data.hotelNeto || "N/A";
         document.getElementById("serviciosNeto").innerText = data.serviciosNeto || "N/A";
         document.getElementById("totalCobrarCliente").innerText = data.totalCobrarCliente || "N/A";
@@ -116,7 +99,7 @@
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       let y = 20;
-
+  
       function addLine(text, fontSize = 12, style = "normal", extraSpace = 4) {
         doc.setFontSize(fontSize);
         doc.setFont("helvetica", style);
@@ -127,7 +110,7 @@
           y = margin;
         }
       }
-
+  
       addLine("Resumen Interno de la Cotización", 16, "bold", 10);
       addLine(document.getElementById("summaryContainer").innerText, 12, "normal", 6);
       const fileName = document.getElementById("pdfFileName").value.trim() || "resumen_cotizacion";
@@ -136,9 +119,8 @@
   </script>
 </head>
 <body>
-    <div class="container" id="summaryContainer">
-        <!-- The dynamic summary will be inserted here based on variables -->
-        <pre style="font-family: inherit; white-space: pre-wrap;">
+  <div class="container" id="summaryContainer">
+    <pre>
 *Cotización Medellín*
 
 Hotel: <span id="hotelName">N/A</span>
@@ -147,7 +129,7 @@ Acomodación: <span id="hotelAcomodacion">N/A</span>
 Itinerario:
 <span id="itinerarioList">N/A</span>
 
-Total por Pasajero: <span id="totalPorPasajero">N/A</span>
+Total por Persona: <span id="totalPorPasajero">N/A</span>
 
 Total = <span id="totalCotizacionUsd">N/A</span>
 
@@ -167,13 +149,10 @@ Total Costos Netos (COP): <span id="totalCostosNeto">N/A</span>
 
 Total de Utilidad (COP): <span id="totalUtilidad">N/A</span>
 Utilidad por Persona (COP): <span id="utilidadPorPersona">N/A</span>
-        </pre>
-        
-    </div>
-
-    <input type="text" id="pdfFileName" placeholder="Nombre del archivo PDF" style="margin: 10px 0; padding: 5px; width: 100%;">
-        <button class="copy-button" onclick="copiarResumen()">Copiar Resumen Interno</button>
-        <button class="copy-button" onclick="guardarComoPDF()">Guardar como PDF</button>
-        
+    </pre>
+    <input type="text" id="pdfFileName" placeholder="Nombre del archivo PDF">
+    <button class="copy-button" onclick="copiarResumen()">Copiar Resumen Interno</button>
+    <button class="copy-button" onclick="guardarComoPDF()">Guardar como PDF</button>
+  </div>
 </body>
 </html>
