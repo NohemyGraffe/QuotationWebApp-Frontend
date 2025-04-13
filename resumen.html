@@ -7,9 +7,10 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
+      line-height: 1.6;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      background-color: #f9f9f9;
       color: #333;
     }
     .container {
@@ -18,11 +19,11 @@
       padding: 20px;
       background: #fff;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     pre {
       font-family: inherit;
-      white-space: pre-wrap; /* preserve formatting */
+      white-space: pre-wrap;
       line-height: 1.6;
     }
     .copy-button {
@@ -39,43 +40,41 @@
     .copy-button:hover {
       background-color: #003d80;
     }
-    input#pdfFileName {
+    #pdfFileName {
       margin: 10px 0;
       padding: 5px;
       width: 100%;
     }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
   <script>
     window.onload = function() {
       const data = JSON.parse(localStorage.getItem("cotizacionData"));
+      console.log("Loaded cotizacionData:", data);
       if (data) {
-        // Update summary fields using dynamic data stored in localStorage
-        // (Assumes your form calculations saved keys with these names)
-        // Hotel Info:
+        // Update Hotel Info (if there is hotel data, use the first hotel's values)
         if (data.hoteles && data.hoteles.length > 0) {
-          // For example, using the first hotel's info:
           document.getElementById("hotelName").textContent = data.hoteles[0].nombre || "N/A";
           document.getElementById("hotelAcomodacion").textContent = data.hoteles[0].acomodacion || "N/A";
         } else {
           document.getElementById("hotelName").textContent = "N/A";
           document.getElementById("hotelAcomodacion").textContent = "N/A";
         }
-
-        // Itinerary:
+        // Update Itinerary: join each itinerary item with a line break
         if (data.itinerario && Array.isArray(data.itinerario) && data.itinerario.length > 0) {
-          let itineraryText = data.itinerario.map(item => `${item.fecha} ${item.actividad}`).join("\n");
+          let itineraryText = data.itinerario
+            .map(item => `${item.fecha} ${item.actividad}`)
+            .join("\n");
           document.getElementById("itinerarioList").innerText = itineraryText;
         } else {
           document.getElementById("itinerarioList").innerText = "N/A";
         }
-        
-        // Totals and other fields (update these keys as defined in your calculations)
+        // Update rest of general data fields
         document.getElementById("numPersonas").textContent = data.numPersonas || "N/A";
-        document.getElementById("totalPorPasajero").innerText = data.totalPorPasajero || "N/A"; 
+        document.getElementById("totalPorPasajero").innerText = data.totalPorPasajero || "N/A";
         document.getElementById("totalCotizacionUsd").innerText = data.totalCotizacionUsd || "N/A";
 
-        // Internal summary data
+        // Update internal summary data fields
         document.getElementById("hotelNeto").innerText = data.hotelNeto || "N/A";
         document.getElementById("serviciosNeto").innerText = data.serviciosNeto || "N/A";
         document.getElementById("totalCobrarCliente").innerText = data.totalCobrarCliente || "N/A";
@@ -91,7 +90,7 @@
         .then(() => alert("Resumen copiado al portapapeles"))
         .catch(err => alert("Error al copiar el resumen: " + err));
     }
-
+    
     async function guardarComoPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -152,7 +151,6 @@ Utilidad por Persona (COP): <span id="utilidadPorPersona">N/A</span>
     </pre>
    
   </div>
-
    <input type="text" id="pdfFileName" placeholder="Nombre del archivo PDF">
     <button class="copy-button" onclick="copiarResumen()">Copiar Resumen Interno</button>
     <button class="copy-button" onclick="guardarComoPDF()">Guardar como PDF</button>
