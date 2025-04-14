@@ -784,7 +784,7 @@ function computeTourCosts(tour, numPersonas, exchangeRate) {
         console.log("Data before saving:", data);
         localStorage.setItem("cotizacionData", JSON.stringify(data));
         console.log("Data saved successfully in localStorage");
-        window.location.href = "resumen.html";
+        window.location.href = "resumenBogota.html";
     } catch (error) {
         console.error("Error in saveAndRedirect:", error);
         alert("Error al guardar la cotización. Revisa la consola para más detalles.");
