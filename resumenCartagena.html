@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Resumen Interno de la Cotización - Cartagena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    pre {
+      font-family: inherit;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+    .copy-button {
+      display: inline-block;
+      margin: 20px 5px 0 5px;
+      padding: 10px 15px;
+      background-color: #0056b3;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .copy-button:hover {
+      background-color: #003d80;
+    }
+    #pdfFileName {
+      margin: 10px 0;
+      padding: 5px;
+      width: 100%;
+    }
+  </style>
+  <!-- Include jsPDF for “Guardar como PDF” functionality -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+
+  <script>
+    window.onload = function() {
+      // Retrieve data from localStorage
+      const data = JSON.parse(localStorage.getItem("cotizacionData"));
+      console.log("Loaded cotizacionData:", data);
+
+      if (data) {
+        /* -------------------------------------
+         * PART 1: “*Cotización Medellín*”
+         * -------------------------------------
+         * Show Hotel & Acomodación from the first hotel row, if any.
+         * Show Itinerario list, Total por Pasajero, and Total.
+         */
+        let hotelName = "N/A";
+        let hotelAcomodacion = "N/A";
+
+        // If there's at least one hotel, use its name & acomodación
+        if (data.hoteles && data.hoteles.length > 0) {
+          hotelName = data.hoteles[0].nombre || "N/A";
+          hotelAcomodacion = data.hoteles[0].acomodacion || "N/A";
+        }
+        document.getElementById("hotelName").textContent = hotelName;
+        document.getElementById("hotelAcomodacion").textContent = hotelAcomodacion;
+
+        // Build the itinerary text
+        if (Array.isArray(data.itinerario) && data.itinerario.length > 0) {
+          const itineraryText = data.itinerario
+            .map(item => `${item.fecha} ${item.actividad}`)
+            .join("\n");
+          document.getElementById("itinerarioList").innerText = itineraryText;
+        } else {
+          document.getElementById("itinerarioList").innerText = "N/A";
+        }
+
+        // For the “Total por Pasajero” and “Total” lines, 
+        // choose the correct stored data fields from your form.
+        // Often these are “data.totalPpVentaUsd” and “data.totalVentaUsd”.
+        document.getElementById("totalPp").textContent = data.totalPpVentaUsd || "N/A";
+        document.getElementById("totalUsd").textContent = data.totalVentaUsd || "N/A";
+
+
+        /* -------------------------------------
+         * PART 2: “*Resumen Interno Cotización*”
+         * -------------------------------------
+         * We display the internal variables you listed:
+         *  - Hotel Neto (COP)
+         *  - Servicios Sin Hotel Netos (COP)
+         *  - Total Cobrar al Cliente (COP)
+         *  - Total Costos Netos (COP)
+         *  - Total de Utilidad (COP)
+         *  - Utilidad por Persona (COP)
+         */
+
+        // 1) Hotel Neto (COP):
+        // If you are summing all hotel “precioNeto” fields from the form, 
+        // you should store that sum in localStorage as “precioHotelNeto”
+        // or compute below. For now, we display data.precioHotelNeto if stored:
+        const hotelNeto = data.precioHotelNeto || "N/A";
+        document.getElementById("hotelNeto").textContent = hotelNeto;
+
+        // 2) Servicios Sin Hotel Netos (COP):
+        // This is the sum: precioTransporteNeto + precioTransporteNetoRegreso + 
+        //                  costosAdicionalesNeto + totalToursNeto
+        const serviciosSinHotel = 
+          (Number(data.precioTransporteNeto) || 0) +
+          (Number(data.precioTransporteNetoRegreso) || 0) +
+          (Number(data.costosAdicionalesNeto) || 0) +
+          (Number(data.totalToursNeto) || 0);
+        document.getElementById("serviciosNeto").textContent = serviciosSinHotel.toLocaleString();
+
+        // 3) Total Cobrar al Cliente (COP):
+        // Usually this is your “totalVentaCop” from the form’s calculations
+        const totalVenta = data.totalVentaCop || "N/A";
+        document.getElementById("totalVenta").textContent = totalVenta;
+
+        // 4) Total Costos Netos (COP):
+        // Usually “totalNetoCop” from the form’s calculations
+        const totalNeto = data.totalNetoCop || "N/A";
+        document.getElementById("totalNeto").textContent = totalNeto;
+
+        // 5) Total de Utilidad (COP):
+        const totalUtilidad = data.totalUtilidad || "N/A";
+        document.getElementById("totalUtilidad").textContent = totalUtilidad;
+
+        // 6) Utilidad por Persona (COP):
+        // Make sure you store “utilidadPp” in localStorage from the form 
+        // (e.g., data.utilidadPp = ... ). Then read it here:
+        const utilidadPp = data.utilidadPp || "N/A";
+        document.getElementById("utilidadPp").textContent = utilidadPp;
+      }
+    };
+
+    // Copy the textual content of “summaryContainer” to the clipboard
+    function copiarResumen() {
+      const resumenElement = document.getElementById("summaryContainer");
+      navigator.clipboard.writeText(resumenElement.innerText)
+        .then(() => alert("Resumen copiado al portapapeles"))
+        .catch(err => alert("Error al copiar el resumen: " + err));
+    }
+
+    // Save the textual content of “summaryContainer” as a PDF
+    async function guardarComoPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const margin = 10;
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let y = margin;
+
+      function addLine(text, fontSize = 12, style = "normal", extraSpace = 6) {
+        doc.setFontSize(fontSize);
+        doc.setFont("helvetica", style);
+        doc.text(text, margin, y);
+        y += extraSpace;
+        // If we exceed the page height, add a new page
+        if (y > pageHeight - margin) {
+          doc.addPage();
+          y = margin;
+        }
+      }
+
+      addLine("Resumen Interno de la Cotización", 16, "bold", 10);
+      addLine(document.getElementById("summaryContainer").innerText);
+      
+      // Use the user’s chosen file name or default
+      const fileName = document.getElementById("pdfFileName").value.trim() || "resumen_cotizacion";
+      doc.save(`${fileName}.pdf`);
+    }
+  </script>
+</head>
+
+<body>
+  <div class="container" id="summaryContainer">
+    <pre>
+*Cotización Cartagena*
+
+Hotel: <span id="hotelName">N/A</span>
+Acomodación: <span id="hotelAcomodacion">N/A</span>
+
+Itinerario:
+<span id="itinerarioList">N/A</span>
+
+Total por Pasajero: <span id="totalPp">N/A</span>
+
+Total = <span id="totalUsd">N/A</span>
+
+|||||||||||||||||
+
+*Resumen Interno Cotización*
+
+Hotel Neto (COP): <span id="hotelNeto">N/A</span>
+
+Servicios Sin Hotel Netos (COP): <span id="serviciosNeto">N/A</span>
+
+--Totales Generales
+
+Total Cobrar al Cliente (COP): <span id="totalVenta">N/A</span>
+Total Costos Netos (COP): <span id="totalNeto">N/A</span>
+
+--Ganancias de la Empresa
+
+Total de Utilidad (COP): <span id="totalUtilidad">N/A</span>
+Utilidad por Persona (COP): <span id="utilidadPp">N/A</span>
+    </pre>
+  </div>
+
+  <!-- PDF Filename Input & Buttons -->
+  <input type="text" id="pdfFileName" placeholder="Nombre del archivo PDF">
+  <button class="copy-button" onclick="copiarResumen()">Copiar Resumen Interno</button>
+  <button class="copy-button" onclick="guardarComoPDF()">Guardar como PDF</button>
+</body>
+</html>
