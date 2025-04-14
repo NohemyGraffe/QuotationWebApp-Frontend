@@ -1,11 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-
-<!-- This is for access restriction -->
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<script src="login.js"></script>
-
   
   <meta charset="UTF-8">
   <title>Resumen Interno de la Cotización - Eje Cafetero</title>
@@ -166,6 +161,20 @@
   </script>
 </head>
 <body>
+
+
+  <!-- Access Protection Scripts -->
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script src="access-guard.js"></script>
+
+<!-- Loading Message -->
+<div id="loading" style="text-align:center; margin-top:100px;">
+  <p>Verificando acceso...</p>
+</div>
+
+<!-- 🔒 Protected Content Starts Here -->
+<div id="secureContent" style="display: none;">
+  
   <div class="container" id="summaryContainer">
     <pre>
 *Cotización Eje Cafetero*
@@ -200,6 +209,7 @@ Total Costos Netos (COP): <span id="totalNeto">N/A</span>
 Total de Utilidad (COP): <span id="totalUtilidad">N/A</span>
 Utilidad por Persona (COP): <span id="utilidadPp">N/A</span>
     </pre>
+  </div>
   </div>
 
   <!-- PDF Filename Input & Buttons -->
