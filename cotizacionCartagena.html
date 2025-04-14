@@ -605,66 +605,72 @@ function calcularPreciosRegreso() {
 
 
         
-        function saveAndRedirect() {
+       function saveAndRedirect() {
     try {
         // Ensure all calculations are up-to-date
         calcularCotizacion();
 
-        // ✅ Function to capture all dynamically added hotels
+        // Function to capture hotel data
         function guardarHoteles() {
             let hoteles = [];
             document.querySelectorAll("#hotelContainer .hotel-row").forEach(row => {
                 // Force onchange event on relevant fields
                 const precioNetoField = row.querySelector(".precioHotelNeto");
                 const utilidadField = row.querySelector(".utilidadHotel");
-
                 if (precioNetoField) {
                     precioNetoField.dispatchEvent(new Event("change"));
                 }
                 if (utilidadField) {
                     utilidadField.dispatchEvent(new Event("change"));
                 }
-
                 // Collect hotel data
-                let precioNeto = precioNetoField ? precioNetoField.value : "0";
-                let utilidad = utilidadField ? utilidadField.value : "0";
-
+                let precioNeto = parseInt(precioNetoField.value) || 0;
+                let utilidad = parseInt(utilidadField.value) || 0;
                 hoteles.push({
                     nombre: row.querySelector(".nombreHotel")?.value.trim() || "N/A",
                     acomodacion: row.querySelector(".tipoAcomodacion")?.value.trim() || "N/A",
-                    precioNeto: parseInt(precioNeto) || 0, // Convert to number to avoid text issues
-                    utilidad: parseInt(utilidad) || 0
+                    precioNeto: precioNeto,
+                    utilidad: utilidad
                 });
             });
             return hoteles;
         }
 
-        // ✅ Function to force update all input fields before saving
+        // Update all input fields so that their change events fire
         function actualizarValoresAntesDeGuardar() {
             document.querySelectorAll("input").forEach(input => {
                 if (input.type === "number" || input.type === "text") {
-                    input.dispatchEvent(new Event("change")); // Force update
+                    input.dispatchEvent(new Event("change"));
                 }
             });
         }
-
-        // 🔥 Force update all input fields before capturing data
         actualizarValoresAntesDeGuardar();
 
-        // ✅ Capture form values **AFTER updating inputs**
+        // Get hotel data and calculate total Hotel Neto
+        const hoteles = guardarHoteles();
+        let totalHotelNeto = 0;
+        hoteles.forEach(hotel => {
+            totalHotelNeto += hotel.precioNeto;
+        });
+
+        // Retrieve the "Utilidad por Persona" from the corresponding element
+        const utilidadPp = document.getElementById("utilidadPp")
+            ? document.getElementById("utilidadPp").textContent
+            : "N/A";
+
+        // Build the data object that will be saved in localStorage
         const data = {
             numPersonas: document.getElementById("numPersonas")?.value || "N/A",
             exchangeRate: document.getElementById("exchangeRate")?.value || "N/A",
-            pax: document.getElementById("pax")?.value || "N/A", // Include pax
-            paxRegreso: document.getElementById("paxRegreso")?.value || "N/A", // Include paxRegreso
+            pax: document.getElementById("pax")?.value || "N/A",
+            paxRegreso: document.getElementById("paxRegreso")?.value || "N/A",
             precioTransporteNeto: document.getElementById("precioTransporteNeto")?.value || "N/A",
             precioTransporteNetoRegreso: document.getElementById("precioTransporteNetoRegreso")?.value || "N/A",
-
-            totalToursNeto: document.querySelector("#tourCheckboxes input[type='checkbox']:checked") ? 
-                Array.from(document.querySelectorAll("#tourCheckboxes input[type='checkbox']:checked"))
-                .map(checkbox => (parseInt(checkbox.value.split('-')[0]) || 0) * (parseInt(document.getElementById("numPersonas").value) || 0))
-                .reduce((a, b) => a + b, 0) : 0,
-
+            totalToursNeto: document.querySelector("#tourCheckboxes input[type='checkbox']:checked")
+                ? Array.from(document.querySelectorAll("#tourCheckboxes input[type='checkbox']:checked"))
+                      .map(checkbox => (parseInt(checkbox.value.split('-')[0]) || 0) * (parseInt(document.getElementById("numPersonas").value) || 0))
+                      .reduce((a, b) => a + b, 0)
+                : 0,
             costosAdicionalesNeto: document.getElementById("costosAdicionalesNeto")?.value || "N/A",
             costosAdicionalesDescripcion: document.getElementById("descripcionCostosAdicionales")?.value || "N/A",
             totalVentaCop: document.getElementById("totalVentaCop")?.textContent || "N/A",
@@ -672,24 +678,20 @@ function calcularPreciosRegreso() {
             totalPpVentaUsd: document.getElementById("totalPpVentaUsd")?.textContent || "N/A",
             totalNetoCop: document.getElementById("totalNetoCop")?.textContent || "N/A",
             totalUtilidad: document.getElementById("totalUtilidad")?.textContent || "N/A",
-
+            // Newly added fields:
+            precioHotelNeto: totalHotelNeto,
+            utilidadPp: utilidadPp,
+            // Other existing data:
             itinerario: Array.from(document.querySelectorAll("#itinerarioContainer .row")).map(row => ({
                 fecha: row.querySelector(".date-picker")?.value || "",
                 actividad: row.querySelector(".actividadItinerario")?.value || ""
             })),
-
-            // ✅ Capture dynamically added hotels before saving
-            hoteles: guardarHoteles()
+            hoteles: hoteles
         };
 
-        console.log("Data before saving:", data); // Debugging log
-
-        // ✅ Store data in localStorage
+        console.log("Data before saving:", data);
         localStorage.setItem("cotizacionData", JSON.stringify(data));
-
         console.log("Data saved successfully in localStorage");
-
-        // ✅ Redirect to resumen.html
         window.location.href = "resumen.html";
     } catch (error) {
         console.error("Error in saveAndRedirect:", error);
