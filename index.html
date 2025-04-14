@@ -21,24 +21,18 @@
       secureContent.style.display = "block";
     }
 
-    // Handle manual login with form
-    window.login = () => {
-      const email = document.getElementById("login-email").value;
-      const password = document.getElementById("login-password").value;
+    // 🔄 Show content immediately after logging in
+    netlifyIdentity.on("login", () => {
+      showContent();
+      netlifyIdentity.close(); // optional: hide modal
+    });
 
-      netlifyIdentity.login(email, password, true)
-        .then(() => showContent())
-        .catch(() => {
-          document.getElementById("login-error").innerText = "Credenciales incorrectas.";
-        });
-    };
-
-    // Handle logout
+    // 🔁 Reload on logout
     netlifyIdentity.on("logout", () => {
       location.reload();
     });
 
-    // Initialize Netlify Identity
+    // 🔑 Show content if already logged in
     netlifyIdentity.on("init", (user) => {
       if (user) {
         showContent();
@@ -50,6 +44,7 @@
     netlifyIdentity.init();
   });
 </script>
+
 
   
   
@@ -120,7 +115,7 @@
 
     <!-- Embedded Login Interface -->
 <div id="login-section" style="display: none; text-align: center; margin-top: 100px;">
-  <h2>Iniciar sesión</h2>
+  <h2>Iniciar sesión a MultyViajes Web App</h2>
   <button class="btn btn-primary" onclick="netlifyIdentity.open()">Acceder</button>
 </div>
 
