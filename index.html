@@ -6,6 +6,22 @@
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script src="login.js"></script>
 
+
+  <!-- Embedded Login Interface -->
+<div id="login-section" style="display: none;">
+  <h2>Iniciar sesión</h2>
+  <input type="email" id="login-email" placeholder="Correo electrónico" />
+  <input type="password" id="login-password" placeholder="Contraseña" />
+  <button onclick="login()">Acceder</button>
+  <p id="login-error" style="color: red;"></p>
+</div>
+
+<!-- 🔒 Protected Content (only visible after login) -->
+<div id="secureContent" style="display: none;">
+  <!-- 👇 Everything below here is your real page content -->
+  
+  <button onclick="netlifyIdentity.logout()" style="float:right;">Cerrar sesión</button>
+
   
   <meta charset="UTF-8">
   <title>Inicio - MultyViajes</title>
@@ -129,6 +145,7 @@
         </div>
       </div>
     </div>
+  </div>
   </div>
   
   <!-- Bootstrap Bundle with Popper -->
