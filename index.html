@@ -127,8 +127,6 @@
 <!-- 🔒 Protected Content (only visible after login) -->
 <div id="secureContent" style="display: none;">
   
-  <button onclick="netlifyIdentity.logout()" style="float:right;">Cerrar sesión</button>
-
     <!-- 👇 Everything below here is your real page content -->
 
   
@@ -190,7 +188,9 @@
         </div>
       </div>
 
-  <button onclick="netlifyIdentity.logout()" style="float:right;">Cerrar sesión</button>
+<button onclick="netlifyIdentity.logout()" class="btn btn-outline-danger btn-sm float-end mt-2 me-2">
+  Cerrar sesión
+</button>
 
       
     </div>
