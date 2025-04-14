@@ -127,5 +127,25 @@
   
   <!-- Bootstrap Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  
+
+<!-- This is for restricting access to only registered users-->
+
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script>
+  netlifyIdentity.on("init", user => {
+    if (!user) {
+      netlifyIdentity.open(); // Opens the login popup if not logged in
+    }
+  });
+
+  netlifyIdentity.on("login", () => {
+    console.log("Logged in!");
+    netlifyIdentity.close();
+  });
+</script>
+
+  
 </body>
 </html>
