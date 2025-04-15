@@ -4,7 +4,6 @@
 
   <!-- 🔒 Protected Content (only visible after login) -->
 
-
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -34,6 +33,11 @@
 
     // 🔑 Show content if already logged in
     netlifyIdentity.on("init", (user) => {
+      // 👇 If the user is coming from an invitation link, show modal
+      if (!user && window.location.hash.includes("#invite_token")) {
+        netlifyIdentity.open(); // open signup modal
+      }
+
       if (user) {
         showContent();
       } else {
@@ -44,7 +48,6 @@
     netlifyIdentity.init();
   });
 </script>
-
 
   
   
