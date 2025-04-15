@@ -8,7 +8,6 @@
 
 
 
-
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -20,6 +19,24 @@
       if (loginBtn) loginBtn.style.display = "none";
     }
 
+    netlifyIdentity.on("init", (user) => {
+      const isInvite = window.location.hash.includes("#invite_token");
+
+      if (user) {
+        showContent();
+      } else {
+        if (loginBtn) loginBtn.style.display = "block";
+
+        // 🔑 Properly wait until widget is ready, then show signup
+        if (isInvite) {
+          // Ensure widget is mounted before opening
+          setTimeout(() => {
+            netlifyIdentity.open("signup");
+          }, 500); // Delay slightly to ensure it's ready
+        }
+      }
+    });
+
     netlifyIdentity.on("login", () => {
       netlifyIdentity.close();
       showContent();
@@ -29,28 +46,16 @@
       window.location.reload();
     });
 
-    netlifyIdentity.on("init", (user) => {
-      const isInvite = window.location.hash.includes("#invite_token");
-
-      if (user) {
-        showContent();
-      } else {
-        if (loginBtn) loginBtn.style.display = "block";
-        if (isInvite) {
-          netlifyIdentity.open("signup"); // ✅ This runs after init
-        }
-      }
+    // Manual login for returning users
+    loginBtn.addEventListener("click", () => {
+      netlifyIdentity.open();
     });
 
     netlifyIdentity.init();
-
-    // Button to open login modal manually
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      netlifyIdentity.open();
-    });
   });
 </script>
-  
+
+
   
   <style>
     body {
