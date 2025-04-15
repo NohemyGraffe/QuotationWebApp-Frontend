@@ -6,6 +6,13 @@
 
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script>
+  const isInvite = window.location.hash.includes("#invite_token");
+
+  // ✅ Open modal BEFORE init if it's an invite link
+  if (isInvite) {
+    netlifyIdentity.open("signup");
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     const secureContent = document.getElementById("secureContent");
     const loginBox = document.getElementById("login-section");
@@ -20,7 +27,6 @@
       if (secureContent) secureContent.style.display = "none";
     }
 
-    // ✅ Login completed manually or via invite
     netlifyIdentity.on("login", () => {
       netlifyIdentity.close();
       showContent();
@@ -30,19 +36,13 @@
       location.reload();
     });
 
-    // ✅ Detect invite link and open modal
-netlifyIdentity.on("init", (user) => {
-  const isInvite = window.location.hash.includes("#invite_token");
-
-  if (user) {
-    showContent();
-  } else if (isInvite) {
-    netlifyIdentity.open("signup"); // ✅ Force signup flow
-  } else {
-    showLogin();
-  }
-});
-
+    netlifyIdentity.on("init", (user) => {
+      if (user) {
+        showContent();
+      } else {
+        showLogin();
+      }
+    });
 
     netlifyIdentity.init();
   });
