@@ -160,23 +160,29 @@
 <script>
   window.addEventListener("load", async () => {
     const Clerk = window.Clerk;
-
     await Clerk.load();
 
     const user = await Clerk.user;
+    const isInvite = window.location.href.includes("invitation_token");
 
     if (user) {
       document.getElementById("secureContent").style.display = "block";
       Clerk.mountUserButton("#clerk-user-button");
       document.getElementById("clerk-user-button").style.display = "inline-block";
+    } else if (isInvite) {
+      Clerk.mountSignUp("#clerk-sign-in");
     } else {
       Clerk.mountSignIn("#clerk-sign-in");
     }
 
-    Clerk.addListener("user:signed_in", () => location.reload());
+    Clerk.addListener("user:signed_in", () => {
+      location.href = "https://multyviajes-web-app.netlify.app/";
+    });
+
     Clerk.addListener("user:signed_out", () => location.reload());
   });
 </script>
+
   
 </body>
 </html>
