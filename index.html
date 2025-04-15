@@ -15,13 +15,11 @@
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
     const secureContent = document.getElementById("secureContent");
+    const isInvite = window.location.hash.includes("#invite_token");
 
-    // Ensure netlifyIdentity is defined before doing anything
     window.netlifyIdentity = window.netlifyIdentity || {};
 
     netlifyIdentity.on("init", user => {
-      const isInvite = window.location.hash.includes("#invite_token");
-
       if (user) {
         secureContent.style.display = "block";
         loginBtn.style.display = "none";
@@ -29,7 +27,10 @@
       } else {
         loginBtn.style.display = "inline-block";
         secureContent.style.display = "none";
-        if (isInvite) netlifyIdentity.open("signup"); // 🛠️ Show signup form only if invited
+        if (isInvite) {
+          // ✅ Only open the signup modal after init completes
+          netlifyIdentity.open("signup");
+        }
       }
     });
 
@@ -47,9 +48,11 @@
     loginBtn.addEventListener("click", () => netlifyIdentity.open());
     logoutBtn.addEventListener("click", () => netlifyIdentity.logout());
 
-    netlifyIdentity.init(); // ✅ Trigger identity init AFTER all handlers
+    // 🔑 Make sure this is last
+    netlifyIdentity.init();
   });
 </script>
+
 
 
   
