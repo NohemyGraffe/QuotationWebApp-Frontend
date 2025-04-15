@@ -1,38 +1,50 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-
-  <!-- 🔒 Protected Content (only visible after login) -->
-
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-<script>
-  // Force open the signup modal early if it's an invite link
-  if (window.location.hash.includes("#invite_token")) {
-    netlifyIdentity.open("signup");
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    netlifyIdentity.on("login", () => {
-      // Login successful — optionally redirect or show content
-      console.log("✅ Logged in");
-    });
-
-    netlifyIdentity.on("logout", () => {
-      window.location.reload();
-    });
-
-    netlifyIdentity.init();
-  });
-</script>
-  
-  
   <meta charset="UTF-8">
   <title>Inicio - MultyViajes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Bootstrap CSS via CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Netlify Identity Widget -->
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script>
+    // Show signup modal if it's an invite link
+    if (window.location.hash.includes("#invite_token")) {
+      netlifyIdentity.open("signup");
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const secureContent = document.getElementById("secureContent");
+      const loginBtn = document.getElementById("loginBtn");
+
+      function showContent() {
+        if (secureContent) secureContent.style.display = "block";
+        if (loginBtn) loginBtn.style.display = "none";
+      }
+
+      netlifyIdentity.on("login", () => {
+        netlifyIdentity.close();
+        showContent();
+      });
+
+      netlifyIdentity.on("logout", () => {
+        window.location.reload();
+      });
+
+      netlifyIdentity.on("init", (user) => {
+        if (user) {
+          showContent();
+        } else {
+          if (loginBtn) loginBtn.style.display = "block";
+        }
+      });
+
+      netlifyIdentity.init();
+    });
+  </script>
+
   <style>
-    
     body {
       background-color: #f4f4f9;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -50,30 +62,21 @@
       font-size: 1.2em;
       color: #333;
     }
-    .card-deck {
-      margin-top: 30px;
-    }
-    .card-title {
-      color: #0056b3;
-      font-weight: bold;
-    }
     .menu-button {
       margin: 5px;
       padding: 12px 25px;
       font-size: 1em;
       border: none;
-      transition: all 0.3s ease;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      text-decoration: none;
       border-radius: 8px;
       display: block;
       text-align: center;
+      text-decoration: none;
     }
     .menu-button:hover {
       transform: translateY(-3px);
       box-shadow: 0 8px 16px rgba(0,0,0,0.2);
     }
-    /* Button color styles */
     .btn-blue {
       background-color: #007bff;
       color: #fff;
@@ -92,29 +95,22 @@
 </head>
 <body>
 
-  <div id="netlify-modal-anchor" style="display: none;"></div>
+<!-- Login button for returning users -->
+<button id="loginBtn" class="btn btn-primary" style="position: fixed; top: 1rem; right: 1rem; display: none;">Iniciar sesión</button>
 
-
-<!-- 🔒 Protected Content (only visible after login) -->
+<!-- Protected content -->
 <div id="secureContent" style="display: none;">
-  
-    <!-- 👇 Everything below here is your real page content -->
-
-  
   <div class="container menu-container">
-    <!-- Hero Section -->
     <div class="text-center">
       <h1 class="hero-title mb-3">Bienvenido al sistema de gestión de datos de MultyViajes</h1>
       <p class="hero-subtitle mb-4">Seleccione una opción del menú</p>
-      <!-- Voucher Button: centered below headline -->
       <a href="https://multyviajes-vouchers.netlify.app/" class="menu-button btn-blue w-50 mx-auto">Crear Voucher de Reserva</a>
     </div>
 
-    <!-- Tourist Packages Section -->
     <h2 class="text-center text-primary my-4">Paquetes Turísticos</h2>
-    
+
     <div class="row card-deck">
-      <!-- Card for Medellín y Guatapé -->
+      <!-- Medellín -->
       <div class="col-md-6 mb-4">
         <div class="card shadow-sm">
           <div class="card-body">
@@ -125,7 +121,7 @@
           </div>
         </div>
       </div>
-      <!-- Card for Cartagena -->
+      <!-- Cartagena -->
       <div class="col-md-6 mb-4">
         <div class="card shadow-sm">
           <div class="card-body">
@@ -136,7 +132,7 @@
           </div>
         </div>
       </div>
-      <!-- Card for Bogotá -->
+      <!-- Bogotá -->
       <div class="col-md-6 mb-4">
         <div class="card shadow-sm">
           <div class="card-body">
@@ -147,7 +143,7 @@
           </div>
         </div>
       </div>
-      <!-- Card for Eje Cafetero -->
+      <!-- Eje Cafetero -->
       <div class="col-md-6 mb-4">
         <div class="card shadow-sm">
           <div class="card-body">
@@ -159,16 +155,15 @@
         </div>
       </div>
     </div>
-    
-  <button onclick="netlifyIdentity.logout()" class="btn btn-outline-danger btn-sm float-end mt-2 me-2">
-  Cerrar sesión
-</button>
-    
-  </div>
-  
-  <!-- Bootstrap Bundle with Popper -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  
+    <!-- Logout button -->
+    <button onclick="netlifyIdentity.logout()" class="btn btn-outline-danger btn-sm float-end mt-2 me-2">
+      Cerrar sesión
+    </button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
