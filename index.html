@@ -9,13 +9,8 @@
 
 
 
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script>
-  // Open signup modal if it's an invite link
-  if (window.location.hash.includes("#invite_token")) {
-    netlifyIdentity.open("signup");
-  }
-
   document.addEventListener("DOMContentLoaded", () => {
     const secureContent = document.getElementById("secureContent");
     const loginBtn = document.getElementById("loginBtn");
@@ -35,23 +30,26 @@
     });
 
     netlifyIdentity.on("init", (user) => {
+      const isInvite = window.location.hash.includes("#invite_token");
+
       if (user) {
         showContent();
       } else {
         if (loginBtn) loginBtn.style.display = "block";
+        if (isInvite) {
+          netlifyIdentity.open("signup"); // ✅ This runs after init
+        }
       }
     });
 
     netlifyIdentity.init();
 
-    // ✅ Fix: Enable button to open the login modal
+    // Button to open login modal manually
     document.getElementById("loginBtn").addEventListener("click", () => {
       netlifyIdentity.open();
     });
   });
 </script>
-
-
   
   
   <style>
