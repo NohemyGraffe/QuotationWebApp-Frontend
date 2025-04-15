@@ -8,54 +8,51 @@
 
 
 
+<!-- Load Netlify Identity Widget -->
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const secureContent = document.getElementById("secureContent");
+  document.addEventListener("DOMContentLoaded", function () {
     const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const secureContent = document.getElementById("secureContent");
 
-    function showContent() {
-      if (secureContent) secureContent.style.display = "block";
-      if (loginBtn) loginBtn.style.display = "none";
-    }
+    // Ensure netlifyIdentity is defined before doing anything
+    window.netlifyIdentity = window.netlifyIdentity || {};
 
-    netlifyIdentity.on("init", (user) => {
+    netlifyIdentity.on("init", user => {
       const isInvite = window.location.hash.includes("#invite_token");
 
       if (user) {
-        showContent();
+        secureContent.style.display = "block";
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-block";
       } else {
-        if (loginBtn) loginBtn.style.display = "block";
-
-        // 🔑 Properly wait until widget is ready, then show signup
-        if (isInvite) {
-          // Ensure widget is mounted before opening
-          setTimeout(() => {
-            netlifyIdentity.open("signup");
-          }, 500); // Delay slightly to ensure it's ready
-        }
+        loginBtn.style.display = "inline-block";
+        secureContent.style.display = "none";
+        if (isInvite) netlifyIdentity.open("signup"); // 🛠️ Show signup form only if invited
       }
     });
 
     netlifyIdentity.on("login", () => {
       netlifyIdentity.close();
-      showContent();
+      secureContent.style.display = "block";
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-block";
     });
 
     netlifyIdentity.on("logout", () => {
       window.location.reload();
     });
 
-    // Manual login for returning users
-    loginBtn.addEventListener("click", () => {
-      netlifyIdentity.open();
-    });
+    loginBtn.addEventListener("click", () => netlifyIdentity.open());
+    logoutBtn.addEventListener("click", () => netlifyIdentity.logout());
 
-    netlifyIdentity.init();
+    netlifyIdentity.init(); // ✅ Trigger identity init AFTER all handlers
   });
 </script>
 
 
+  
   
   <style>
     body {
@@ -109,8 +106,11 @@
 <body>
 
 <!-- Login button for returning users -->
-<button id="loginBtn" class="btn btn-primary" style="position: fixed; top: 1rem; right: 1rem; display: none;">Iniciar sesión</button>
+<button id="loginBtn" class="btn btn-primary" style="position: fixed; top: 1rem; right: 1rem; display: none;">
+  Iniciar sesión
+</button>
 
+  
 <!-- Protected content -->
 <div id="secureContent" style="display: none;">
   <div class="container menu-container">
