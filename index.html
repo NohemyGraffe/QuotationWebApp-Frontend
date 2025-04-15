@@ -31,19 +31,18 @@
     });
 
     // ✅ Detect invite link and open modal
-    netlifyIdentity.on("init", (user) => {
-      const isInvite = window.location.hash.includes("#invite_token");
+netlifyIdentity.on("init", (user) => {
+  const isInvite = window.location.hash.includes("#invite_token");
 
-      if (user) {
-        showContent();
-      } else if (isInvite) {
-        // Show both login box and modal when invite link
-        if (loginBox) loginBox.style.display = "block";
-        netlifyIdentity.open();
-      } else {
-        showLogin();
-      }
-    });
+  if (user) {
+    showContent();
+  } else if (isInvite) {
+    netlifyIdentity.open("signup"); // ✅ Force signup flow
+  } else {
+    showLogin();
+  }
+});
+
 
     netlifyIdentity.init();
   });
