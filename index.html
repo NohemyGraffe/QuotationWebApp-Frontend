@@ -6,49 +6,24 @@
 
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script>
-  const isInvite = window.location.hash.includes("#invite_token");
-
-  // ✅ Open modal BEFORE init if it's an invite link
-  if (isInvite) {
+  // Force open the signup modal early if it's an invite link
+  if (window.location.hash.includes("#invite_token")) {
     netlifyIdentity.open("signup");
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    const secureContent = document.getElementById("secureContent");
-    const loginBox = document.getElementById("login-section");
-
-    function showContent() {
-      if (loginBox) loginBox.style.display = "none";
-      if (secureContent) secureContent.style.display = "block";
-    }
-
-    function showLogin() {
-      if (loginBox) loginBox.style.display = "block";
-      if (secureContent) secureContent.style.display = "none";
-    }
-
     netlifyIdentity.on("login", () => {
-      netlifyIdentity.close();
-      showContent();
+      // Login successful — optionally redirect or show content
+      console.log("✅ Logged in");
     });
 
     netlifyIdentity.on("logout", () => {
-      location.reload();
-    });
-
-    netlifyIdentity.on("init", (user) => {
-      if (user) {
-        showContent();
-      } else {
-        showLogin();
-      }
+      window.location.reload();
     });
 
     netlifyIdentity.init();
   });
 </script>
-
-
   
   
   <meta charset="UTF-8">
@@ -119,16 +94,6 @@
 
   <div id="netlify-modal-anchor" style="display: none;"></div>
 
-    <!-- Embedded Login Interface -->
-<div id="login-section" style="display: none; text-align: center; margin-top: 100px;">
-  <h2>Iniciar sesión a la Web App de MultyViajes</h2>
-  
-  <br>
-  
-  <button class="btn btn-primary" onclick="netlifyIdentity.open()">Acceder</button>
-
-  </br>
-</div>
 
 <!-- 🔒 Protected Content (only visible after login) -->
 <div id="secureContent" style="display: none;">
