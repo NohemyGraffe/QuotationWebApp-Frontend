@@ -156,30 +156,38 @@
   <!-- Bootstrap Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-
 <script>
   window.addEventListener("load", async () => {
     const Clerk = window.Clerk;
+
+    // Load Clerk and wait for it to handle invitation ticket
     await Clerk.load();
 
     const user = await Clerk.user;
-    const isInvite = window.location.href.includes("invitation_token");
 
     if (user) {
       document.getElementById("secureContent").style.display = "block";
       Clerk.mountUserButton("#clerk-user-button");
       document.getElementById("clerk-user-button").style.display = "inline-block";
-    } else if (isInvite) {
-      Clerk.mountSignUp("#clerk-sign-in");
     } else {
-      Clerk.mountSignIn("#clerk-sign-in");
+      // Check if coming from invite ticket
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasTicket = urlParams.has("__clerk_ticket");
+
+      if (hasTicket) {
+        Clerk.mountSignUp("#clerk-sign-in");
+      } else {
+        Clerk.mountSignIn("#clerk-sign-in");
+      }
     }
 
     Clerk.addListener("user:signed_in", () => {
-      location.href = "https://multyviajes-web-app.netlify.app/";
+      window.location.href = "https://multyviajes-web-app.netlify.app/";
     });
 
-    Clerk.addListener("user:signed_out", () => location.reload());
+    Clerk.addListener("user:signed_out", () => {
+      location.reload();
+    });
   });
 </script>
 
