@@ -56,16 +56,15 @@
   </style>
 
 
-<!-- Include Clerk JS (with your own publishable key and frontend API URL) -->
+<!-- Include Clerk JS (with your own publishable key and frontend API URL) --
 
-<script 
-  async 
-  crossorigin="anonymous" 
+  <!-- HEAD -->
+<script
+  async
+  crossorigin="anonymous"
   data-clerk-publishable-key="pk_test_YmVjb21pbmctcmhpbm8tMC5jbGVyay5hY2NvdW50cy5kZXYk"
   data-clerk-frontend-api="becoming-rhino-0.clerk.accounts.dev"
-  data-clerk-after-sign-in-url="https://multyviajes-web-app.netlify.app/"
-  data-clerk-after-sign-up-url="https://multyviajes-web-app.netlify.app/"
-  src="https://https://becoming-rhino-0.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js">
+  src="https://becoming-rhino-0.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js">
 </script>
 
   
@@ -83,6 +82,15 @@
   Cerrar sesión
 </button>
 
+  
+  <!-- Login area -->
+  <div id="auth-area" class="text-end p-3">
+    <div id="clerk-sign-in"></div>
+    <div id="clerk-user-button" style="display:none;"></div>
+  </div>
+
+  <!-- Protected content -->
+  <div id="secureContent" style="display: none;">
 <!-- Protected content -->
   <div class="container menu-container">
     <div class="text-center">
@@ -140,9 +148,32 @@
       </div>
     </div>
   </div>
+  </div>
 
 <!-- Bootstrap Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script>
+  window.addEventListener("load", async () => {
+    const Clerk = window.Clerk;
+
+    await Clerk.load();
+
+    const user = await Clerk.user;
+
+    if (user) {
+      document.getElementById("secureContent").style.display = "block";
+      Clerk.mountUserButton("#clerk-user-button");
+      document.getElementById("clerk-user-button").style.display = "inline-block";
+    } else {
+      Clerk.mountSignIn("#clerk-sign-in");
+    }
+
+    Clerk.addListener("user:signed_in", () => location.reload());
+    Clerk.addListener("user:signed_out", () => location.reload());
+  });
+</script>
 
   
 </body>
@@ -150,182 +181,7 @@
 
 
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
 
 
 
-
-
-
-
-
-
-
-
-
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Inicio - MultyViajes</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <style>
-    body {
-      background-color: #f4f4f9;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    .menu-container {
-      margin-top: 50px;
-      margin-bottom: 50px;
-    }
-    .hero-title {
-      font-size: 2.5em;
-      font-weight: bold;
-      color: #0056b3;
-    }
-    .hero-subtitle {
-      font-size: 1.2em;
-      color: #333;
-    }
-    .menu-button {
-      margin: 5px;
-      padding: 12px 25px;
-      font-size: 1em;
-      border: none;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      border-radius: 8px;
-      display: block;
-      text-align: center;
-      text-decoration: none;
-    }
-    .menu-button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-    }
-    .btn-blue {
-      background-color: #007bff;
-      color: #fff;
-    }
-    .btn-blue:hover {
-      background-color: #0069d9;
-    }
-    .btn-green {
-      background-color: #28a745;
-      color: #fff;
-    }
-    .btn-green:hover {
-      background-color: #218838;
-    }
-  </style>
-
-  <!-- Clerk.js (CDN version) -->
-  <script async crossorigin="anonymous"
-    data-clerk-publishable-key="pk_test_YmVjb21pbmctcmhpbm8tMC5jbGVyay5hY2NvdW50cy5kZXYk"
-    src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js">
-  </script>
-</head>
-<body>
-  <!-- Login area -->
-  <div id="auth-area" class="text-end p-3">
-    <div id="clerk-sign-in"></div>
-    <div id="clerk-user-button" style="display:none;"></div>
-  </div>
-
-  <!-- Protected content -->
-  <div id="secureContent" style="display: none;">
-    <div class="container menu-container">
-      <div class="text-center">
-        <h1 class="hero-title mb-3">Bienvenido al sistema de gestión de datos de MultyViajes</h1>
-        <p class="hero-subtitle mb-4">Seleccione una opción del menú</p>
-        <a href="https://multyviajes-vouchers.netlify.app/" class="menu-button btn-blue w-50 mx-auto">Crear Voucher de Reserva</a>
-      </div>
-
-      <h2 class="text-center text-primary my-4">Paquetes Turísticos</h2>
-      <div class="row card-deck">
-        <!-- Repeat your cards here -->
-        <!-- Example card -->
-        <div class="col-md-6 mb-4">
-          <div class="card shadow-sm">
-            <div class="card-body">
-              <h3 class="card-title">Medellín</h3>
-              <a href="cotizacion.html" class="menu-button btn-blue">Crear Cotización</a>
-              <a href="adminTours.html" class="menu-button btn-green">Manejar Información de los Tours</a>
-              <a href="adminTransp.html" class="menu-button btn-green">Manejar Información de los Traslados</a>
-            </div>
-          </div>
-        </div>
-        <!-- Add the others just like above -->
-        <!-- Cartagena -->
-      <div class="col-md-6 mb-4">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h3 class="card-title">Cartagena</h3>
-            <a href="cotizacionCartagena.html" class="menu-button btn-blue">Crear Cotización</a>
-            <a href="adminToursCartagena.html" class="menu-button btn-green">Manejar Información de los Tours</a>
-            <a href="adminTranspCartagena.html" class="menu-button btn-green">Manejar Información de los Traslados</a>
-          </div>
-        </div>
-      </div>
-      <!-- Bogotá -->
-      <div class="col-md-6 mb-4">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h3 class="card-title">Bogotá</h3>
-            <a href="cotizacionBogota.html" class="menu-button btn-blue">Crear Cotización</a>
-            <a href="adminToursBogota.html" class="menu-button btn-green">Manejar Información de los Tours</a>
-            <a href="adminTranspBogota.html" class="menu-button btn-green">Manejar Información de los Traslados</a>
-          </div>
-        </div>
-      </div>
-      <!-- Eje Cafetero -->
-      <div class="col-md-6 mb-4">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h3 class="card-title">Eje Cafetero</h3>
-            <a href="cotizacionEjeCafetero.html" class="menu-button btn-blue">Crear Cotización</a>
-            <a href="adminToursEjeCafetero.html" class="menu-button btn-green">Manejar Información de los Tours</a>
-            <a href="adminTranspEjeCafetero.html" class="menu-button btn-green">Manejar Información de los Traslados</a>
-          </div>
-        </div>
-      </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Clerk JS logic -->
-  <script>
-    window.addEventListener("load", async () => {
-      const Clerk = window.Clerk;
-
-      await Clerk.load();
-
-      const user = await Clerk.user;
-
-      if (user) {
-        // Show protected content and user avatar
-        document.getElementById("secureContent").style.display = "block";
-        Clerk.mountUserButton("#clerk-user-button");
-        document.getElementById("clerk-user-button").style.display = "inline-block";
-      } else {
-        // Show sign-in interface
-        Clerk.mountSignIn("#clerk-sign-in");
-      }
-
-      Clerk.addListener("user:signed_in", () => {
-        location.reload();
-      });
-
-      Clerk.addListener("user:signed_out", () => {
-        location.reload();
-      });
-    });
-  </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
 
