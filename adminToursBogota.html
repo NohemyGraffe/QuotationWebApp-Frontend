@@ -110,7 +110,7 @@
   // 1) Load tours from your API and render them.
   async function loadTours(openTourId = null) {
     try {
-      const response = await fetch("https://multyviajes-backend.onrender.com/api/toursbogota");
+      const response = await fetch("https://quotationwebapp-backend.onrender.com/api/toursbogota");
       if (!response.ok) throw new Error("Error fetching tours data");
       toursData = await response.json();
       renderTours(openTourId);
