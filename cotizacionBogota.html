@@ -339,7 +339,7 @@ let transportationPricing = null;
 // Function to load transportation pricing data from your API
 async function loadTransportationPricing() {
   try {
-    const response = await fetch('https://multyviajes-backend.onrender.com/api/transportationbogota');
+    const response = await fetch('https://quotationwebapp-backend.onrender.com/api/transportationbogota');
     if (!response.ok) {
       throw new Error('Error fetching transportation pricing data');
     }
@@ -497,7 +497,7 @@ totalVenta += totalToursVenta;
 
 async function loadToursForQuotation() {
   try {
-    const response = await fetch('https://multyviajes-backend.onrender.com/api/toursbogota');
+    const response = await fetch('https://quotationwebapp-backend.onrender.com/api/toursbogota');
     if (!response.ok) throw new Error('Error fetching tours data');
     const tours = await response.json();
 
