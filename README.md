@@ -6,4 +6,3 @@ Sanitized replica of the full-stack quotation system I built for MultyViajes. De
 
 * Tech Stack: MongoDB Atlas, Node.js/Express REST API, hosted on Render; front-end on Netlify (HTML/JavaScript/CSS).
 
-* Url to web app: https://multyviajes-web-app.netlify.app/
